@@ -1,0 +1,259 @@
+<meta charset="utf-8">
+<title>Formatador de cifra para impressão</title>
+<style>
+  :root{
+    --ink:#1c1a17;
+    --paper:#fdfcfa;
+    --rule:#d8d2c8;
+    --chord:#a8410f;
+    --muted:#6f6862;
+    --grey:#b5b0a8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e5de;color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;}
+
+  /* ---------- painel de controle (some na impressão) ---------- */
+  .panel{background:var(--ink);color:#f2ede6;padding:20px 24px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;}
+  .panel h1{margin:0 0 4px;font-family:inherit;font-size:13px;font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;}
+  .panel p{margin:0 0 16px;color:#a49c92;font-size:12px;line-height:1.5}
+  .panel code{color:#e5946a}
+  .grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+  label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#a49c92;margin-bottom:5px}
+  input,select,textarea{font-family:inherit;font-size:13px;background:#2b2825;color:#f2ede6;
+    border:1px solid #47423d;border-radius:3px;padding:7px 9px;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--chord);outline-offset:1px}
+  textarea{width:100%;resize:vertical;line-height:1.45;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+  #src{min-height:150px}
+  #ch{min-height:88px}
+  .full{flex:1 1 100%;margin-top:14px}
+  button{font-family:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--chord);color:#fff;border:0;border-radius:3px;padding:9px 18px;cursor:pointer;}
+  button:hover{background:#8c3409}
+
+  /* ---------- folha ---------- */
+  .sheet{background:var(--paper);max-width:800px;margin:24px auto;padding:28px 32px 36px;
+    box-shadow:0 2px 18px rgba(0,0,0,.14);}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+    border-bottom:1.5px solid var(--ink);padding-bottom:10px;margin-bottom:14px;}
+  .title{font-size:26px;font-weight:600;line-height:1.05;margin:0}
+  .artist{font-size:13px;color:var(--muted);letter-spacing:.06em;margin:3px 0 0}
+  .meta{font-size:11px;color:var(--muted);margin:8px 0 0;letter-spacing:.1em;text-transform:uppercase}
+
+  /* diagramas: canto superior direito da primeira página */
+  .shapes{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;max-width:68%}
+  .shape{text-align:center;width:62px}
+  .shape .nm{font-size:11px;font-weight:700;color:var(--chord);margin-bottom:1px;font-family:ui-monospace,monospace}
+  .shape svg{display:block;margin:0 auto}
+  .shape .cap{font-size:7.5px;line-height:1.25;color:var(--muted);margin-top:1px}
+
+  .cols{column-gap:22px;column-rule:1px solid var(--rule)}
+  .blk{break-inside:avoid;page-break-inside:avoid;margin-bottom:2px}
+  pre{margin:0;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    white-space:pre-wrap;overflow-wrap:break-word;}
+  pre.c{color:var(--chord);font-weight:700}
+  pre.s{color:var(--muted);font-weight:700;letter-spacing:.08em;margin-top:9px}
+
+  @media print{
+    body{background:#fff}
+    .panel{display:none}
+    .sheet{box-shadow:none;margin:0;max-width:none;overflow:visible}
+    .cols{height:auto;overflow:visible}
+    .head{break-inside:avoid}
+    .blk{break-inside:avoid-page}
+    @page{size:A4;margin:0}
+  }
+</style>
+
+<div class="panel">
+  <h1>Formatador de cifra</h1>
+  <p>Cole o texto da cifra abaixo (na página do CifraClub: Ctrl+A → Ctrl+C). Ajuste as opções, depois <b>Ctrl+P → Salvar como PDF</b>.</p>
+  <div class="grid">
+    <div><label>Título</label><input id="t" size="22" value="Ousado Amor"></div>
+    <div><label>Artista</label><input id="a" size="16" value="Isaías Saad"></div>
+    <div><label>Tom</label><input id="k" size="5" value=""></div>
+    <div><label>Capotraste</label><input id="cp" size="3" value="" placeholder="2"></div>
+    <div><label>Colunas</label><select id="n"><option>1</option><option>2</option><option selected>3</option><option>4</option></select></div>
+    <div><label>Corpo</label><select id="f">
+      <option>7.5</option><option selected>8.5</option><option>9.5</option><option>10.5</option></select></div>
+    <div><label>Entrelinha</label><select id="l">
+      <option>1.15</option><option selected>1.3</option><option>1.5</option></select></div>
+    <div><label>Margem</label><select id="mg">
+      <option>10</option><option>14</option><option selected>18</option><option>22</option><option>26</option></select></div>
+    <div><label>Topo extra</label><select id="mt">
+      <option>0</option><option>6</option><option selected>12</option><option>18</option><option>24</option></select></div>
+    <div><button onclick="render()">Aplicar</button></div>
+    <div><button id="pbtn">Imprimir / PDF</button></div>
+  </div>
+  <p id="phint" style="display:none;margin:12px 0 0;color:#e5946a">Baixe este arquivo e abra-o direto no navegador — dentro do visualizador a impressão fica bloqueada. Com o arquivo aberto, use este botão ou Cmd/Ctrl+P.</p>
+  <div class="full">
+    <label>Texto da cifra</label>
+    <textarea id="src" placeholder="Cole aqui — linhas de acorde acima das linhas de letra."></textarea>
+  </div>
+  <div class="full">
+    <label>Diagramas — um por linha: <code>nome | casas | dedos | legenda</code> (só o nome é obrigatório)</label>
+    <textarea id="ch" spellcheck="false">D9 | xx0230 | ___12_ | E9 com forma de D9
+E4 | 022200 | _123__ | F#4 com forma de E4
+F#m | 244222 | _34___ | G#m com forma de F#m
+A | x02220 | __123_ | B com forma de A</textarea>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="head">
+    <div>
+      <h2 class="title" id="oT">Ousado Amor</h2>
+      <p class="artist" id="oA">Isaías Saad</p>
+      <p class="meta" id="oK"></p>
+    </div>
+    <div class="shapes" id="oS"></div>
+  </div>
+  <div class="cols" id="oB"></div>
+</div>
+
+<script>
+// formas usuais; qualquer acorde pode ser escrito à mão no campo de diagramas
+const DB={
+ C:"x32010",D:"xx0232",E:"022100",F:"133211",G:"320003",A:"x02220",B:"x24442",
+ Cm:"x35543",Dm:"xx0231",Em:"022000",Fm:"133111",Gm:"355333",Am:"x02210",Bm:"x24432",
+ C7:"x32310",D7:"xx0212",E7:"020100",G7:"320001",A7:"x02020",B7:"x21202",
+ Cmaj7:"x32000",Dmaj7:"xx0222",Fmaj7:"xx3210",Gmaj7:"320002",Amaj7:"x02120",
+ Em7:"020000",Am7:"x02010",Dm7:"xx0211",Bm7:"x20202","F#m":"244222","C#m":"x46654",
+ C9:"x32033",D9:"xx0230",G9:"3x0201",A9:"x02200",E9:"022102",
+ C4:"x33011",D4:"xx0233",E4:"022200",G4:"330013",A4:"x02230",
+ Csus4:"x33011",Dsus4:"xx0233",Esus4:"022200",Gsus4:"330013",Asus4:"x02230",
+ "C/G":"332010","D/F#":"200232","G/B":"x20003","F/A":"x03211","Am/G":"302210",
+ Em9:"022002",Cadd9:"x32030"
+};
+
+const GL=13, DX=7, DY=7.6, W=62;
+
+function diagram(name,frets,fingers,caption,capo){
+  const f=frets.split("").slice(0,6);
+  const fg=(fingers||"").padEnd(6,"_").split("");
+  const nums=f.filter(c=>/[1-9]/.test(c)).map(Number);
+  const base=nums.length&&Math.max(...nums)>5?Math.min(...nums):0;
+  const top = capo ? 20 : 14;               // espaço extra para a barra do capotraste
+  const bot = top + 5*DY;
+  const H   = bot + 11;
+  const rel = n => n-(base?base-1:0);
+  let g="";
+
+  // barra do capotraste
+  if(capo){
+    g+=`<rect x="${GL-3.5}" y="4" width="${5*DX+7}" height="7" rx="1.6" fill="#3d3833"/>`;
+    g+=`<text x="${GL+2.5*DX}" y="9.4" font-size="4.2" letter-spacing="1.1" text-anchor="middle" fill="#fff" font-family="ui-monospace,monospace">CAPO</text>`;
+    g+=`<text x="${GL-6}" y="10" font-size="6" text-anchor="end" fill="#1c1a17" font-weight="700">${capo}ª</text>`;
+  }
+
+  // grade
+  for(let i=0;i<6;i++) g+=`<line x1="${GL+i*DX}" y1="${top}" x2="${GL+i*DX}" y2="${bot}" stroke="#1c1a17" stroke-width=".6"/>`;
+  for(let i=0;i<6;i++){
+    const thick = (i===0 && !base && !capo) ? 1.9 : .6;
+    g+=`<line x1="${GL}" y1="${top+i*DY}" x2="${GL+5*DX}" y2="${top+i*DY}" stroke="#1c1a17" stroke-width="${thick}"/>`;
+  }
+  if(base) g+=`<text x="${GL+5*DX+3}" y="${top+DY-1.5}" font-size="5.2" fill="#6f6862">${base}</text>`;
+
+  // pestana: casa mínima em 3+ cordas, ou em 2 cordas com casa mais alta entre elas
+  const min=nums.length?Math.min(...nums):0;
+  const at=f.map((c,i)=>c==String(min)?i:-1).filter(i=>i>=0);
+  const gap = at.length>=2 && f.slice(at[0]+1,at[at.length-1]).some(c=>/[1-9]/.test(c)&&Number(c)>min);
+  if(min && (at.length>=3 || gap)){
+    const y=top+(rel(min)-.5)*DY;
+    g+=`<line x1="${GL+at[0]*DX}" y1="${y}" x2="${GL+at[at.length-1]*DX}" y2="${y}" stroke="#1c1a17" stroke-width="4.4" stroke-linecap="round"/>`;
+  }
+
+  // dedos
+  f.forEach((c,i)=>{
+    if(!/[1-9]/.test(c)) return;
+    const X=GL+i*DX, Y=top+(rel(Number(c))-.5)*DY;
+    g+=`<circle cx="${X}" cy="${Y}" r="2.6" fill="#1c1a17"/>`;
+    if(/[1-4]/.test(fg[i])) g+=`<text x="${X}" y="${Y+1.6}" font-size="4.2" text-anchor="middle" fill="#fff" font-family="ui-monospace,monospace">${fg[i]}</text>`;
+  });
+
+  // marcadores das cordas, abaixo da grade
+  f.forEach((c,i)=>{
+    const X=GL+i*DX, Y=bot+6;
+    if(c==="x") g+=`<text x="${X}" y="${Y+2}" font-size="6" text-anchor="middle" fill="var(--grey)">×</text>`;
+    else if(c==="0") g+=`<circle cx="${X}" cy="${Y}" r="2.1" fill="none" stroke="var(--grey)" stroke-width=".9"/>`;
+    else g+=`<circle cx="${X}" cy="${Y}" r="2.1" fill="var(--grey)"/>`;
+  });
+
+  return `<div class="shape"><div class="nm">${esc(name)}${capo?"*":""}</div>`+
+         `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`+
+         (caption?`<div class="cap">${esc(caption)}</div>`:"")+`</div>`;
+}
+
+function parseShapes(text,capo){
+  return text.split("\n").map(raw=>{
+    const line=raw.trim();
+    if(!line) return "";
+    let name,frets,fingers,caption;
+    if(line.includes("|")){
+      [name,frets,fingers,caption]=line.split("|").map(s=>s.trim());
+    }else{                                  // atalho: "G D:320003 Em7" numa linha só
+      return line.split(/\s+/).filter(Boolean).map(tok=>{
+        const [n,fr]=tok.split(":");
+        const sh=fr||DB[n];
+        return sh?diagram(n,sh,"","",capo):"";
+      }).join("");
+    }
+    frets=frets||DB[name];
+    return frets?diagram(name,frets,fingers,caption,capo):"";
+  }).join("");
+}
+
+const CH=/^[A-G][#b]?(?:maj|min|dim|aug|sus|add|[mM])?(?:[0-9()#b+\-º°]|maj|min|dim|aug|sus|add|[mM]|\/[A-G][#b]?)*$/;
+const isChordLine=l=>{
+  const t=l.trim().split(/\s+/).filter(Boolean);
+  return t.length>0 && t.every(w=>CH.test(w));
+};
+const isSection=l=>/^\[.+\]$|^(intro|verso|refr|ponte|solo|final|pré|coda|parte)/i.test(l.trim());
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function render(){
+  const v=id=>document.getElementById(id);
+  let ps=document.getElementById("pagestyle");
+  if(!ps){ps=document.createElement("style");ps.id="pagestyle";document.head.appendChild(ps);}
+  ps.textContent="@page{size:A4;margin:0}"+
+    "@media print{"+
+      ".sheet{padding:"+v("mt").value+"mm 0 0!important}"+
+      ".head,.cols{padding-left:"+v("mg").value+"mm!important;padding-right:"+v("mg").value+"mm!important}"+
+      ".cols{padding-bottom:"+v("mg").value+"mm!important}"+
+    "}";
+  const capo=(v("cp").value||"").replace(/\D/g,"");
+  v("oT").textContent=v("t").value;
+  v("oA").textContent=v("a").value;
+  v("oK").textContent=[v("k").value?"Tom "+v("k").value:"",capo?"Capotraste na "+capo+"ª casa":""].filter(Boolean).join(" · ");
+  v("oS").innerHTML=parseShapes(v("ch").value,capo);
+
+  const b=v("oB");
+  b.style.columnCount=v("n").value;
+  b.style.fontSize=v("f").value+"pt";
+  b.style.lineHeight=v("l").value;
+
+  const lines=v("src").value.replace(/\r/g,"").split("\n");
+  let html="",i=0;
+  while(i<lines.length){
+    const L=lines[i];
+    if(!L.trim()){html+='<div class="blk"><pre> </pre></div>';i++;continue;}
+    if(isSection(L)){html+=`<div class="blk"><pre class="s">${esc(L.trim())}</pre></div>`;i++;continue;}
+    if(isChordLine(L)&&lines[i+1]&&lines[i+1].trim()&&!isChordLine(lines[i+1])){
+      html+=`<div class="blk"><pre class="c">${esc(L)}</pre><pre>${esc(lines[i+1])}</pre></div>`;i+=2;continue;
+    }
+    html+=`<div class="blk"><pre class="${isChordLine(L)?"c":""}">${esc(L)}</pre></div>`;i++;
+  }
+  b.innerHTML=html;
+}
+document.getElementById("pbtn").addEventListener("click",()=>{
+  const framed = window.self !== window.top;
+  if(framed) document.getElementById("phint").style.display="block";
+  try{ window.print(); }catch(e){ document.getElementById("phint").style.display="block"; }
+});
+
+["src","ch","t","a","k","cp"].forEach(id=>document.getElementById(id).addEventListener("input",render));
+["n","f","l","mg","mt"].forEach(id=>document.getElementById(id).addEventListener("change",render));
+render();
+</script>

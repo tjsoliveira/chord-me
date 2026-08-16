@@ -1,0 +1,855 @@
+/* ==========================================================================
+   chord-me — application chrome
+
+   Two materials with a hard boundary (see PRODUCT.md):
+   the tool is dark, dense and monospaced and recedes; the sheet is warm paper
+   and is the only bright thing on screen. Everything here styles the tool.
+   The sheet is styled entirely by sheet.css and must not be touched from here.
+   ========================================================================== */
+
+:root {
+  /* ---- Paper tokens: PRINT CONTRACT. Consumed by sheet.css and
+     ChordDiagram.tsx. Changing any of these changes printed output. ---- */
+  --ink: #1c1a17;
+  --paper: #fdfcfa;
+  --rule: #d8d2c8;
+  --chord: #a8410f;
+  --muted: #6f6862;
+  /* Deliberate, recorded deviation from formatador-cifra.html (was #b5b0a8).
+     The below-grid string markers carry meaning (× muted, ○ open), and at
+     2.10:1 on paper they fell under the 3:1 WCAG asks of a meaningful graphic.
+     #8a857d reaches 3.57:1 while staying 4.74:1 clear of the near-black
+     fretted dots, so the visual hierarchy is unchanged. See research.md R11. */
+  --grey: #8a857d;
+
+  /* ---- Chrome tokens: screen only, never printed.
+     Contrast against --app-surface verified: text 14.9:1, muted 6.4:1,
+     accent 7.3:1, danger 5.3:1, white on accent-solid 6.1:1. ---- */
+  --app-bg: #141210;
+  --app-surface: #1c1a17;
+  --app-raised: #23201d;
+  --app-border: #35312c;
+  --app-border-strong: #47423d;
+  --app-text: #f2ede6;
+  --app-text-muted: #a49c92;
+  --app-accent: #e5946a;
+  --app-accent-solid: #a8410f;
+  --app-accent-solid-hover: #c14e13;
+  --app-danger: #d9705f;
+  --app-danger-solid: #7a1f1f;
+  --app-danger-solid-hover: #982828;
+
+  /* ---- Type: one monospaced family for the whole tool. Fixed rem scale,
+     ~1.2 ratio. Alignment matters in this domain, so mono is functional. ---- */
+  --font-ui: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-label: 0.6875rem;
+  --fs-meta: 0.75rem;
+  --fs-base: 0.8125rem;
+  --fs-input: 0.9375rem;
+  --fs-section: 1.125rem;
+  --fs-title: 1.375rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius: 3px;
+  --radius-lg: 5px;
+
+  /* ---- Semantic stacking order. Never arbitrary values. ---- */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-dropdown: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 150ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+/* One focus treatment for the entire application. Before this, no element had
+   any focus style at all, which made keyboard navigation invisible. */
+:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  border-radius: 1px;
+}
+
+::selection {
+  background: var(--app-accent-solid);
+  color: #fff;
+}
+
+/* Visible to screen readers, not on screen. For controls whose purpose is
+   clear visually but needs a name in the accessibility tree. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Shell
+   ========================================================================== */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav {
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  padding: 0 var(--space-5);
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+  height: 44px;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.app-nav a {
+  text-decoration: none;
+  font-size: var(--fs-meta);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur) var(--ease);
+}
+
+.app-nav a:hover {
+  color: var(--app-text);
+}
+
+.app-nav a.active {
+  color: var(--app-text);
+  border-bottom-color: var(--app-accent);
+}
+
+.app-nav .brand {
+  font-weight: 700;
+  color: var(--app-accent);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  margin-right: auto;
+}
+
+/* Centered document-ish pages: library, song, chords. */
+.page {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--space-5);
+  flex: 1;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.page-title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.page-count {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+}
+
+.backlink {
+  display: inline-block;
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  text-decoration: none;
+  margin-bottom: var(--space-3);
+  transition: color var(--dur) var(--ease);
+}
+
+.backlink:hover {
+  color: var(--app-accent);
+}
+
+/* ==========================================================================
+   Form controls
+   ========================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field > label {
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  font-size: var(--fs-input);
+  color: var(--app-text);
+  background: var(--app-raised);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--radius);
+  padding: 7px 9px;
+  min-height: 32px;
+  transition: border-color var(--dur) var(--ease);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: #5b554e;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--app-text-muted);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--app-danger);
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  padding-right: 26px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--app-text-muted) 50%),
+    linear-gradient(135deg, var(--app-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 14px, calc(100% - 9px) 14px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field-error {
+  color: var(--app-danger);
+  font-size: var(--fs-meta);
+}
+
+.hint {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Buttons and fields sit on a shared baseline when mixed in one row. */
+.row--controls {
+  align-items: flex-end;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+button {
+  font-family: var(--font-ui);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--app-accent-solid);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0 14px;
+  min-height: 32px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+button:hover:not(:disabled) {
+  background: var(--app-accent-solid-hover);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--app-text);
+  border-color: var(--app-border-strong);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--app-raised);
+  border-color: #5b554e;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--app-text-muted);
+  border-color: transparent;
+  padding: 0 8px;
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--app-raised);
+  color: var(--app-text);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--app-danger);
+  border-color: transparent;
+  padding: 0 8px;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--app-danger-solid);
+  color: #fff;
+}
+
+button.danger-solid {
+  background: var(--app-danger-solid);
+  color: #fff;
+}
+
+button.danger-solid:hover:not(:disabled) {
+  background: var(--app-danger-solid-hover);
+}
+
+/* ==========================================================================
+   Dense rows — replaces the card grids
+   ========================================================================== */
+
+.rowlist {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  border-top: 1px solid var(--app-border);
+}
+
+.rowitem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--app-border);
+  transition: background var(--dur) var(--ease);
+}
+
+.rowitem:hover {
+  background: var(--app-surface);
+}
+
+/* The sub-row list below carries the separator instead. */
+.rowitem--grouped {
+  border-bottom: 0;
+}
+
+/* The title is the link; actions are siblings, never nested inside an anchor. */
+.rowitem-link {
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.rowitem-name {
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.rowitem-link:hover .rowitem-name {
+  color: var(--app-accent);
+}
+
+.rowitem-meta {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  margin-top: 2px;
+}
+
+/* Version sub-rows under a song in the library. Indented and quieter than the
+   song row so the hierarchy reads without a nested frame. */
+.subrows {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.subrow {
+  display: flex;
+  border-left: 1px solid var(--app-border);
+}
+
+.subrow-link {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease);
+}
+
+.subrow-link:hover {
+  color: var(--app-accent);
+}
+
+.rowitem-actions {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Inline destructive confirmation. Replaces blocking native confirm(). */
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-meta);
+  color: var(--app-danger);
+}
+
+/* ==========================================================================
+   Create bar — replaces the "new item" card
+   ========================================================================== */
+
+.createbar {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-lg);
+}
+
+.createbar .field {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* ==========================================================================
+   Empty states — teach the next step, don't just report emptiness
+   ========================================================================== */
+
+.empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  border: 1px dashed var(--app-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+}
+
+.empty-title {
+  color: var(--app-text);
+  margin-bottom: var(--space-1);
+}
+
+.empty-hint {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  max-width: 46ch;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Chord catalog — the diagram is the visual, no card frame
+   ========================================================================== */
+
+.chordgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.chordcell {
+  position: relative;
+  padding: var(--space-2) var(--space-1) var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  transition: border-color var(--dur) var(--ease);
+}
+
+.chordcell:hover,
+.chordcell:focus-within {
+  border-color: var(--app-accent);
+}
+
+.chordcell-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.chordcell:hover .chordcell-actions,
+.chordcell:focus-within .chordcell-actions {
+  opacity: 1;
+}
+
+/* Actions sit on paper here, so they need the paper-side palette. */
+.chordcell-actions button {
+  font-size: 10px;
+  min-height: 24px;
+  padding: 0 6px;
+  color: var(--muted);
+}
+
+.chordcell-actions button:hover:not(:disabled) {
+  background: var(--chord);
+  color: #fff;
+}
+
+.chord-preview {
+  display: inline-block;
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+}
+
+/* ==========================================================================
+   Version workspace — full bleed, toolbar + two panes
+   ========================================================================== */
+
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar {
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: sticky;
+  top: 44px;
+  z-index: var(--z-sticky);
+}
+
+.toolbar-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.toolbar-line--primary {
+  gap: var(--space-4);
+}
+
+.toolbar-spacer {
+  margin-left: auto;
+}
+
+.toolbar-title {
+  font-weight: 700;
+  color: var(--app-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 34ch;
+}
+
+/* Compact label+control pair for the toolbar's dense strip. */
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline-field > label {
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
+.inline-field input,
+.inline-field select {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: var(--fs-base);
+}
+
+.inline-field select {
+  padding-right: 24px;
+  background-position: calc(100% - 13px) 12px, calc(100% - 8px) 12px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-right: var(--space-3);
+  border-right: 1px solid var(--app-border);
+}
+
+.toolbar-group:last-of-type {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.toolbar-label {
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
+/* Selected chord chips */
+.chipstrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--app-raised);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--radius);
+  padding: 2px 4px 2px 8px;
+  font-size: var(--fs-meta);
+  color: var(--app-text);
+}
+
+.chip-name {
+  font-weight: 700;
+  color: var(--app-accent);
+}
+
+.chip-frets {
+  color: var(--app-text-muted);
+  font-size: var(--fs-label);
+}
+
+.chip button {
+  min-height: 20px;
+  padding: 0 4px;
+  font-size: 11px;
+  background: transparent;
+  color: var(--app-text-muted);
+  border: 0;
+}
+
+.chip button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--app-danger);
+}
+
+/* Two panes: the editor takes the flexible space, the paper keeps its natural
+   width. This is the point of the redesign — the sheet-text editor used to be
+   the narrowest element on screen while being the primary work surface. */
+.panes {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) auto;
+  gap: 0;
+  min-height: 0;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--app-border);
+  min-width: 0;
+  background: var(--app-bg);
+}
+
+.editor-input {
+  flex: 1;
+  width: 100%;
+  min-height: 60vh;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: var(--fs-input);
+  line-height: 1.55;
+  padding: var(--space-4);
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  tab-size: 4;
+}
+
+.editor-input:hover {
+  border: 0;
+}
+
+.editor-input:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+
+.editor-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--app-border);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+.paper-pane {
+  overflow-y: auto;
+  /* Safety net: the sheet has a fixed natural width, so if the column is ever
+     squeezed the sheet scrolls inside this pane rather than pushing the page
+     into a horizontal scroll. */
+  overflow-x: auto;
+  padding: var(--space-4);
+  background: var(--app-bg);
+}
+
+/* Editor floor (420) + sheet (800 + 32 padding) = 1252px before the two panes
+   stop fitting side by side. Stack below that, with headroom. */
+@media (max-width: 1280px) {
+  .panes {
+    grid-template-columns: 1fr;
+  }
+  .editor-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--app-border);
+  }
+  .editor-input {
+    min-height: 40vh;
+  }
+}
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+
+   Chrome is hidden by explicit class, never by a structural selector. The
+   previous rule was `.page > *:not(.print-area)`, which only worked while the
+   sheet was a direct child of .page — restructuring the page would have
+   silently printed a blank sheet. Every chrome container carries .chrome;
+   every wrapper on the sheet's ancestor chain collapses to plain block flow so
+   the sheet prints exactly as sheet.css specifies.
+   ========================================================================== */
+
+@media print {
+  .chrome {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: var(--ink) !important;
+  }
+
+  /* Only the sheet's ancestor chain survives. Pages without a sheet
+     (library, song, chords) carry .chrome on their root and disappear. */
+  .app-shell,
+  .workspace,
+  .panes,
+  .paper-pane {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+}
