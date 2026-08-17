@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiClientError } from "../api.js";
 import { parseFretsInput } from "../../shared/frets.js";
@@ -16,6 +16,7 @@ export function ChordsPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [blocked, setBlocked] = useState<{ name: string; usages: ChordUsage[] } | null>(null);
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const panelRef = useRef<HTMLFormElement>(null);
 
   function load(q = "") {
     api.listChords(q || undefined).then(setChords);
@@ -36,6 +37,12 @@ export function ChordsPage() {
     });
     setFieldErrors({});
     setBlocked(null);
+    setConfirmingId(null);
+    // Under 900px the panel stacks below the grid, so a click on a card would
+    // otherwise change something off screen.
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -125,33 +132,54 @@ export function ChordsPage() {
         {chords.length > 0 && (
           <div className="chordgrid">
             {chords.map((c) => (
-              <div key={c.id} className="chordcell">
-                <ChordDiagram chord={c} capo={null} />
-                <div className="chordcell-actions">
-                  {confirmingId === c.id ? (
-                    <>
-                      <button type="button" onClick={() => remove(c)}>
-                        Excluir?
-                      </button>
-                      <button type="button" onClick={() => setConfirmingId(null)}>
-                        Não
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button type="button" onClick={() => edit(c)} aria-label={`Editar ${c.name}`}>
-                        Editar
+              <div
+                key={c.id}
+                className={`chordcell${form.id === c.id ? " is-editing" : ""}`}
+              >
+                {/* The diagram is the edit target: the thing you want to change
+                    is the thing you click, and the form is already on screen. */}
+                <button
+                  type="button"
+                  className="chordcell-open"
+                  onClick={() => edit(c)}
+                  aria-label={`Editar ${c.name}`}
+                  aria-pressed={form.id === c.id}
+                >
+                  <ChordDiagram chord={c} capo={null} />
+                </button>
+
+                {confirmingId === c.id ? (
+                  <div className="chordcell-confirm">
+                    <span className="chordcell-confirm-title">Excluir?</span>
+                    <div className="chordcell-confirm-row">
+                      <button
+                        type="button"
+                        className="danger-solid"
+                        onClick={() => remove(c)}
+                        aria-label={`Confirmar exclusão de ${c.name}`}
+                      >
+                        Sim
                       </button>
                       <button
                         type="button"
-                        onClick={() => setConfirmingId(c.id)}
-                        aria-label={`Excluir ${c.name}`}
+                        className="secondary"
+                        onClick={() => setConfirmingId(null)}
                       >
-                        Excluir
+                        Não
                       </button>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="chordcell-remove"
+                    onClick={() => setConfirmingId(c.id)}
+                    aria-label={`Excluir ${c.name}`}
+                    title={`Excluir ${c.name}`}
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -171,7 +199,7 @@ export function ChordsPage() {
 
       {/* Sticky beside the grid, not below it: describing a shape and comparing
           it against the stored ones is one task, so both stay on screen. */}
-      <form className="catalog-panel" onSubmit={submit}>
+      <form className="catalog-panel" ref={panelRef} onSubmit={submit}>
         <h2 className="catalog-panel-title">
           {form.id != null ? `Editando ${form.name || "acorde"}` : "Criação de acorde"}
         </h2>

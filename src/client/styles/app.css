@@ -630,27 +630,110 @@ button.danger-solid:hover:not(:disabled) {
   border-color: var(--app-accent);
 }
 
-/* Permanently visible, not hover-revealed. Hiding a control to buy tidiness
-   is the trade this product rejects, and the hidden version also shipped a
-   24px target, under the 32px floor. */
-.chordcell-actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-1);
-  margin-top: var(--space-1);
+/* The card currently loaded in the panel stays marked, so the form on the
+   right is never editing something the grid does not point at. */
+.chordcell.is-editing {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 2px var(--app-accent);
 }
 
-/* Actions sit on paper here, so they need the paper-side palette. */
-.chordcell-actions button {
-  font-size: 10px;
+/* The whole diagram is the edit affordance — a button that carries no button
+   chrome, so the card still reads as paper. */
+.chordcell-open {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0;
+  min-height: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  color: inherit;
+}
+
+.chordcell-open:hover:not(:disabled) {
+  background: none;
+}
+
+.chordcell-open:active:not(:disabled) {
+  transform: none;
+}
+
+/* Permanently visible, not hover-revealed. Hiding a control to buy tidiness
+   is the trade this product rejects. The 32px target is kept while the glyph
+   itself stays small enough not to fight the diagram. */
+.chordcell-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
   min-height: 32px;
-  padding: 0 8px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.chordcell-remove:hover:not(:disabled),
+.chordcell-remove:focus-visible {
+  background: var(--app-danger-solid);
+  color: #fff;
+  opacity: 1;
+}
+
+/* Delete stays two-step: the grid is dense and the cards are small, so a
+   single stray click must not destroy a shape. */
+.chordcell-confirm {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--paper);
+  border-radius: var(--radius-lg);
+}
+
+.chordcell-confirm-title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.chordcell-actions button:hover:not(:disabled) {
-  background: var(--chord);
-  color: #fff;
+.chordcell-confirm-row {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.chordcell-confirm-row button {
+  font-size: 10px;
+  min-height: 32px;
+  padding: 0 8px;
+}
+
+/* These sit on paper, not on the app surface, so the light-on-dark text
+   colour of the shared .secondary would vanish. */
+.chordcell-confirm-row button.secondary {
+  color: var(--ink);
+  border-color: var(--grey);
+}
+
+.chordcell-confirm-row button.secondary:hover:not(:disabled) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
 
 .chord-preview {
