@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, ApiClientError } from "../api.js";
 import { parseFretsInput } from "../../shared/frets.js";
 import type { Chord, ChordUsage } from "../../shared/types.js";
@@ -85,83 +86,97 @@ export function ChordsPage() {
     : null;
 
   return (
-    <div className="page chrome">
-      <div className="page-head">
-        <h1 className="page-title">Acordes</h1>
-        <span className="page-count">
-          {chords.length} {chords.length === 1 ? "forma" : "formas"}
-        </span>
-      </div>
-
-      <div className="field" style={{ marginBottom: 16 }}>
-        <label htmlFor="chord-search">Buscar</label>
-        <input
-          id="chord-search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Nome do acorde"
-        />
-      </div>
-
-      {blocked && (
-        <div className="empty" style={{ borderStyle: "solid", textAlign: "left" }}>
-          <div className="empty-title">
-            "{blocked.name}" está em uso e não pode ser excluído
-          </div>
-          <ul className="empty-hint" style={{ margin: "8px 0 0", paddingLeft: 18 }}>
-            {blocked.usages.map((u) => (
-              <li key={u.versionId}>
-                {u.songTitle} — {u.versionLabel}
-              </li>
-            ))}
-          </ul>
+    <div className="catalog chrome">
+      <div className="catalog-main">
+        <div className="page-head">
+          <h1 className="page-title">Acordes</h1>
+          <span className="page-count">
+            {chords.length} {chords.length === 1 ? "forma" : "formas"}
+          </span>
         </div>
-      )}
 
-      {chords.length > 0 && (
-        <div className="chordgrid">
-          {chords.map((c) => (
-            <div key={c.id} className="chordcell">
-              <ChordDiagram chord={c} capo={null} />
-              <div className="chordcell-actions">
-                {confirmingId === c.id ? (
-                  <>
-                    <button type="button" onClick={() => remove(c)}>
-                      Excluir?
-                    </button>
-                    <button type="button" onClick={() => setConfirmingId(null)}>
-                      Não
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => edit(c)}>
-                      Editar
-                    </button>
-                    <button type="button" onClick={() => setConfirmingId(c.id)}>
-                      Excluir
-                    </button>
-                  </>
-                )}
-              </div>
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="chord-search">Buscar</label>
+          <input
+            id="chord-search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Nome do acorde"
+          />
+        </div>
+
+        {blocked && (
+          <div className="empty" style={{ borderStyle: "solid", textAlign: "left" }}>
+            <div className="empty-title">
+              "{blocked.name}" está em uso e não pode ser excluído
             </div>
-          ))}
-        </div>
-      )}
-
-      {chords.length === 0 && (
-        <div className="empty">
-          <div className="empty-title">
-            {query ? `Nenhum acorde com "${query}"` : "Catálogo vazio"}
+            <ul className="empty-hint" style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+              {blocked.usages.map((u) => (
+                <li key={u.versionId}>
+                  <Link to={`/versions/${u.versionId}`}>
+                    {u.songTitle} — {u.versionLabel}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <p className="empty-hint">
-            Formas cadastradas aqui ficam disponíveis para qualquer versão de qualquer música.
-          </p>
-        </div>
-      )}
+        )}
 
-      <form className="createbar" onSubmit={submit} style={{ alignItems: "flex-start" }}>
-        <div className="field" style={{ minWidth: 90, flex: "0 0 90px" }}>
+        {chords.length > 0 && (
+          <div className="chordgrid">
+            {chords.map((c) => (
+              <div key={c.id} className="chordcell">
+                <ChordDiagram chord={c} capo={null} />
+                <div className="chordcell-actions">
+                  {confirmingId === c.id ? (
+                    <>
+                      <button type="button" onClick={() => remove(c)}>
+                        Excluir?
+                      </button>
+                      <button type="button" onClick={() => setConfirmingId(null)}>
+                        Não
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => edit(c)} aria-label={`Editar ${c.name}`}>
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingId(c.id)}
+                        aria-label={`Excluir ${c.name}`}
+                      >
+                        Excluir
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {chords.length === 0 && (
+          <div className="empty">
+            <div className="empty-title">
+              {query ? `Nenhum acorde com "${query}"` : "Catálogo vazio"}
+            </div>
+            <p className="empty-hint">
+              Formas cadastradas aqui ficam disponíveis para qualquer versão de qualquer música.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Sticky beside the grid, not below it: describing a shape and comparing
+          it against the stored ones is one task, so both stay on screen. */}
+      <form className="catalog-panel" onSubmit={submit}>
+        <h2 className="catalog-panel-title">
+          {form.id != null ? `Editando ${form.name || "acorde"}` : "Criação de acorde"}
+        </h2>
+
+        <div className="field">
           <label htmlFor="chord-name">Nome</label>
           <input
             id="chord-name"
@@ -182,7 +197,7 @@ export function ChordsPage() {
           />
           {fieldErrors.frets && <span className="field-error">{fieldErrors.frets}</span>}
         </div>
-        <div className="field" style={{ minWidth: 90, flex: "0 0 90px" }}>
+        <div className="field">
           <label htmlFor="chord-fingers">Dedos</label>
           <input
             id="chord-fingers"
@@ -203,16 +218,18 @@ export function ChordsPage() {
         </div>
 
         {preview && (
-          <div className="field" style={{ flex: "0 0 auto" }}>
+          <div className="field">
             <label>Prévia</label>
-            <div className="chord-preview">
+            <div className="chord-preview" style={{ alignSelf: "center" }}>
               <ChordDiagram chord={preview} capo={null} />
             </div>
           </div>
         )}
 
-        <div className="row" style={{ alignItems: "flex-end", paddingTop: 18 }}>
-          <button type="submit">{form.id != null ? "Salvar acorde" : "Criar acorde"}</button>
+        <div className="row">
+          <button type="submit" style={{ flex: 1 }}>
+            {form.id != null ? "Salvar acorde" : "Criar acorde"}
+          </button>
           {form.id != null && (
             <button type="button" className="secondary" onClick={() => setForm(emptyForm)}>
               Cancelar

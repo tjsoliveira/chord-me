@@ -46,7 +46,12 @@ export const api = {
   deleteSong: (id: number) => request<void>(`/songs/${id}`, { method: "DELETE" }),
 
   // Versions
-  createVersion: (songId: number, data: { label: string }) =>
+  createVersion: (
+    songId: number,
+    // The server already accepts and validates these; only the client type
+    // was narrow, which made them unreachable from the UI.
+    data: { label: string; songKey?: string | null; capo?: number | null }
+  ) =>
     request<SongVersionWithChords>(`/songs/${songId}/versions`, {
       method: "POST",
       body: JSON.stringify(data),

@@ -23,18 +23,39 @@
   --grey: #8a857d;
 
   /* ---- Chrome tokens: screen only, never printed.
+
+     Independent from the paper tokens above by design. Until the Stitch
+     redesign, --app-accent-solid happened to hold the same value as --chord
+     (#a8410f); that was coincidence, not a constraint. The two groups now
+     diverge and MUST stay divergent: the paper accent is tuned for ink on
+     white, the chrome accent for a saturated mark on near-black.
+
      Contrast against --app-surface verified: text 14.9:1, muted 6.4:1,
-     accent 7.3:1, danger 5.3:1, white on accent-solid 6.1:1. ---- */
+     accent 7.4:1, danger 5.3:1. Against --app-bg the accent is 8.0:1.
+
+     --app-accent is bright enough to fail as a *background* for white text
+     (2.33:1), so solid accent fills invert their label to --app-on-accent
+     instead. See research.md R1. ---- */
   --app-bg: #141210;
   --app-surface: #1c1a17;
   --app-raised: #23201d;
+  /* --app-border draws separators and container frames only. Decorative rules
+     are outside WCAG 1.4.11, so it stays quiet on purpose.
+     --app-border-strong draws the *boundary* of interactive controls (inputs,
+     selects, secondary buttons, chips), which 1.4.11 does hold to 3:1. It was
+     #47423d, which measured 1.63:1 on --app-raised — a control whose edge you
+     could not reliably see. Now 3.32:1 there, 3.83:1 on --app-bg. */
   --app-border: #35312c;
-  --app-border-strong: #47423d;
+  --app-border-strong: #787066;
+  --app-border-hover: #8f8578;
   --app-text: #f2ede6;
   --app-text-muted: #a49c92;
-  --app-accent: #e5946a;
-  --app-accent-solid: #a8410f;
-  --app-accent-solid-hover: #c14e13;
+  --app-accent: #ff8c00;
+  --app-accent-solid: #ff8c00;
+  --app-accent-solid-hover: #ffa033;
+  /* Label colour on any solid accent fill. 8.0:1 on --app-accent-solid,
+     9.2:1 on the hover value. Never use #fff on the accent. */
+  --app-on-accent: #141210;
   --app-danger: #d9705f;
   --app-danger-solid: #7a1f1f;
   --app-danger-solid-hover: #982828;
@@ -98,7 +119,7 @@ a {
 
 ::selection {
   background: var(--app-accent-solid);
-  color: #fff;
+  color: var(--app-on-accent);
 }
 
 /* Visible to screen readers, not on screen. For controls whose purpose is
@@ -245,7 +266,7 @@ select {
 input:hover,
 textarea:hover,
 select:hover {
-  border-color: #5b554e;
+  border-color: var(--app-border-hover);
 }
 
 input::placeholder,
@@ -307,7 +328,10 @@ button {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--app-accent-solid);
-  color: #fff;
+  /* Near-black, not white: white on this accent measures 2.33:1 and fails
+     WCAG AA. Only .danger* below override this, and they do so onto a dark
+     red fill where white is correct. */
+  color: var(--app-on-accent);
   border: 1px solid transparent;
   border-radius: var(--radius);
   padding: 0 14px;
@@ -339,7 +363,7 @@ button.secondary {
 
 button.secondary:hover:not(:disabled) {
   background: var(--app-raised);
-  border-color: #5b554e;
+  border-color: var(--app-border-hover);
 }
 
 button.ghost {
@@ -455,6 +479,18 @@ button.danger-solid:hover:not(:disabled) {
   color: var(--app-accent);
 }
 
+/* Musical identity of a version, on the row the label already occupies. Quiet
+   enough not to compete with the label, loud enough to be scanned down the
+   column when picking between versions of the same song. */
+.subrow-meta {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
 .rowitem-actions {
   display: flex;
   gap: var(--space-1);
@@ -520,6 +556,59 @@ button.danger-solid:hover:not(:disabled) {
    Chord catalog — the diagram is the visual, no card frame
    ========================================================================== */
 
+/* The catalog opts out of the shared 880px .page container. Comparing a shape
+   against the ones already stored, and describing a new one, are the same
+   task — so the grid and the form have to be on screen together. With the
+   form below a 53-tile grid, reaching it scrolled the grid out of view. */
+.catalog {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-5);
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.catalog-main {
+  min-width: 0;
+}
+
+.catalog-panel {
+  position: sticky;
+  top: calc(44px + var(--space-5));
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.catalog-panel-title {
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  margin: 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--app-border);
+}
+
+/* Below this the panel cannot hold a legible form beside the grid, so it
+   returns to a stacked block rather than being squeezed. */
+@media (max-width: 900px) {
+  .catalog {
+    grid-template-columns: 1fr;
+  }
+  .catalog-panel {
+    position: static;
+  }
+}
+
 .chordgrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
@@ -541,25 +630,21 @@ button.danger-solid:hover:not(:disabled) {
   border-color: var(--app-accent);
 }
 
+/* Permanently visible, not hover-revealed. Hiding a control to buy tidiness
+   is the trade this product rejects, and the hidden version also shipped a
+   24px target, under the 32px floor. */
 .chordcell-actions {
   display: flex;
   justify-content: center;
   gap: var(--space-1);
   margin-top: var(--space-1);
-  opacity: 0;
-  transition: opacity var(--dur) var(--ease);
-}
-
-.chordcell:hover .chordcell-actions,
-.chordcell:focus-within .chordcell-actions {
-  opacity: 1;
 }
 
 /* Actions sit on paper here, so they need the paper-side palette. */
 .chordcell-actions button {
   font-size: 10px;
-  min-height: 24px;
-  padding: 0 6px;
+  min-height: 32px;
+  padding: 0 8px;
   color: var(--muted);
 }
 

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="chord-me">
+  <!-- Full-bleed, no shadow, no surround: the supplied PNGs were presentation
+       renders on a white field and could not ship as an icon. Geometry is
+       chunky on purpose so the mark survives 16px. -->
+  <rect width="32" height="32" fill="#0d0d0d"/>
+  <g fill="#ff8c00">
+    <!-- Fretboard: nut plus three frets, four strings. -->
+    <rect x="15" y="7" width="13" height="2.5"/>
+    <rect x="15" y="14" width="13" height="1.4"/>
+    <rect x="15" y="19.5" width="13" height="1.4"/>
+    <rect x="15" width="1.4" height="18" y="7"/>
+    <rect x="19" width="1.4" height="18" y="7"/>
+    <rect x="23" width="1.4" height="18" y="7"/>
+    <rect x="26.6" width="1.4" height="18" y="7"/>
+    <!-- Two stopped strings, sitting in the frets like a shape. -->
+    <circle cx="19.7" cy="11.8" r="2"/>
+    <circle cx="27.3" cy="17.2" r="2"/>
+    <!-- Eighth note: stem meets the nut, head sits low left. -->
+    <rect x="10.5" y="7" width="2.4" height="14"/>
+    <ellipse cx="8" cy="22.4" rx="4.2" ry="3.4" transform="rotate(-18 8 22.4)"/>
+  </g>
+</svg>

@@ -42,10 +42,17 @@ export interface SongVersionWithChords extends SongVersion {
   chords: Chord[];
 }
 
-/** Just enough to name a version and link to it. Never carries sheetText. */
+/**
+ * Just enough to name a version, link to it, and show what it is musically.
+ * Never carries sheetText — that is the whole reason this type stays narrow,
+ * and it is asserted in tests/songs-api.test.ts.
+ */
 export interface VersionRef {
   id: number;
   label: string;
+  songKey: string | null;
+  /** 1–12, or null for no capo. The schema has no encoding for capo 0. */
+  capo: number | null;
 }
 
 export interface SongSummary {

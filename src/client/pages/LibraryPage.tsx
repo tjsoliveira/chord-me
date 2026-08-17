@@ -101,6 +101,13 @@ export function LibraryPage() {
                       <Link to={`/versions/${v.id}`} className="subrow-link">
                         {s.title} - {v.label}
                       </Link>
+                      {/* Key and capo ride the line the label already occupies,
+                          so the row count per screen is unchanged. Phrasing
+                          matches SongPage so the two screens read alike. */}
+                      <span className="subrow-meta">
+                        {v.songKey ? `Tom ${v.songKey}` : "sem tom"}
+                        {v.capo ? ` · capo ${v.capo}ª` : ""}
+                      </span>
                     </li>
                   ))}
                 </ul>

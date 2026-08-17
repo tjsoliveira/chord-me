@@ -1,5 +1,11 @@
 # Product
 
+> **This is a design brief, not a status report.** It records what the product is for and
+> what it should feel like. It does not track what is built. Two earlier statements here
+> described a pre-MVP state and were read as current during spec work for
+> `specs/002-ui-redesign`, which caused that spec to plan work that already shipped. Both
+> are corrected below. Before writing requirements from this file, read the code.
+
 ## Register
 
 product
@@ -47,7 +53,8 @@ O silêncio da interface é a feature.
   espalhados numa barra de ferramentas sem ordem.
 
 Ponto extra do usuário: gosta de tema escuro. O baseline `formatador-cifra.html` já
-tinha painel de controle escuro e monoespaçado; a versão React perdeu isso.
+tinha painel de controle escuro e monoespaçado, e a versão React mantém isso — chrome
+escuro, monoespaçado, com a folha clara como único elemento quente da tela.
 
 ## Design Principles
 
@@ -76,8 +83,8 @@ Sem necessidade específica declarada. Segue o padrão:
 
 - Contraste WCAG AA (4.5:1 corpo, 3:1 texto grande). Cinza claro sobre fundo claro é
   proibido para qualquer texto de leitura.
-- Foco visível em todo elemento interativo. Hoje **não existe** estilo de foco: é a
-  falha de acessibilidade mais grave do estado atual.
+- Foco visível em todo elemento interativo. Existe um tratamento único de `:focus-visible`
+  para toda a aplicação, definido em `app.css`; qualquer controle novo herda dele.
 - Navegação por teclado funcional (o fluxo principal é digitação; o mouse é secundário).
 - `prefers-reduced-motion` respeitado em qualquer transição.
 - Alvo de clique mínimo 32px na interface densa (não é uso por toque).
