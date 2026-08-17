@@ -64,9 +64,10 @@ requires WCAG AA throughout. Do those values hold?
 | Near-black (`#141210`) text on `#FF8C00` | ~8.1:1 | Passes |
 | White on today's `#a8410f` | 6.13:1 | Passes — matches the ratio recorded in `app.css` |
 
-**Decision**: Adopt `#FF8C00` as the accent for text, borders, focus, and active state.
-For *solid* accent fills — primary buttons — invert the label to near-black instead of
-white. The mockups draw white on orange, which is the one thing in them that cannot ship.
+**Decision (superseded — see R1a)**: Adopt `#FF8C00` as the accent for text, borders, focus,
+and active state. For *solid* accent fills — primary buttons — invert the label to
+near-black instead of white. The mockups draw white on orange, which is the one thing in
+them that cannot ship.
 
 **Rationale**: The accent hue is the most recognisable part of the redesign and it is
 excellent as a foreground. Its failure mode is narrow and specific: it is too light to
@@ -79,6 +80,50 @@ carry white text. Dark-on-orange is the standard resolution and reads as deliber
 - Keeping white text and accepting 2.33:1. Rejected — FR-006 is not negotiable, and the
   primary button is the highest-traffic control in the app.
 
+## R1a — The mockup accent shipped, then was reverted
+
+**Finding**: `#FF8C00` was implemented and immediately rejected on sight by the owner. The
+contrast maths in R1 were right and the accent passed every threshold; the problem was
+taste, and taste on a tool used daily by one person outranks a mockup.
+
+Two things went wrong that the ratio table could not show:
+
+1. **Solid fills read as warnings.** A primary button went from a dark rust block with a
+   white label — which recedes — to a bright orange block with a black label, which is the
+   visual grammar of a hazard sign. Principle "the tool does not compete with the artifact"
+   is exactly what that breaks.
+2. **It severed an echo.** `--app-accent-solid` held `#a8410f`, the same value as the print
+   token `--chord`. R2 below treated that as coincidence to be eliminated. It was not
+   coincidence — it is why the palette feels of a piece. The highlight in the tool is the
+   ink the chord lines print in.
+
+**Decision**: Revert the accent family to `#e5946a` / `#a8410f` / `#c14e13`, with white
+labels on solid fills (6.1:1). Keep `--app-on-accent` as a token: it names the relationship
+and is where the fix goes if the accent is ever brightened again.
+
+**What survives from R1**: the measurement itself. White on `#FF8C00` is 2.33:1 and can
+never ship. That is recorded in the token comment so the trap is not re-entered.
+
+**Not reverted**: the `--app-border-strong` fix (R8a). It had nothing to do with the accent.
+
+## R8a — Control boundaries failed the non-text contrast floor
+
+**Found during implementation**, not planned.
+
+`--app-border-strong: #47423d` measured **1.63:1** against `--app-raised: #23201d`. That
+token draws the visible edge of every input, select, secondary button and chip. WCAG 1.4.11
+holds the boundary of a user interface component to 3:1, and FR-006 restates it.
+
+**Decision**: `#787066` (3.32:1 on `--app-raised`, 3.83:1 on `--app-bg`), with the two
+hardcoded `#5b554e` hover values replaced by a new `--app-border-hover: #8f8578` (4.47:1).
+
+`--app-border` was left alone at 1.35:1. It draws separators and container frames only —
+decorative rules, which 1.4.11 does not cover — and raising it would add visual noise the
+density principle does not want. The distinction is now recorded in the token comment.
+
+**Why fixed rather than logged**: pre-existing, but FR-006 and SC-005 are in this feature's
+scope, and the fix is two values.
+
 ## R2 — Keeping the chrome accent away from the print ink
 
 **Question**: `--chord: #a8410f` is a **print contract token** (Principle II) consumed by
@@ -86,13 +131,17 @@ carry white text. Dark-on-orange is the standard resolution and reads as deliber
 Does changing the chrome accent endanger printed output?
 
 **Decision**: Change only the `--app-*` tokens. Leave `--ink`, `--paper`, `--rule`,
-`--chord`, `--muted`, `--grey` untouched, byte for byte. Add a comment marking the two
-groups as deliberately independent now that they no longer coincide.
+`--chord`, `--muted`, `--grey` untouched, byte for byte.
 
-**Rationale**: The two values being equal today is a coincidence of taste, not a
-constraint. The paper palette is tuned for ink on white and was already adjusted once for
-contrast (`--grey`, recorded as R11 in the MVP research). A saturated `#FF8C00` on paper
-would be both wrong and a silent print regression.
+**Amended after R1a**: this section originally called `--app-accent-solid == --chord` a
+coincidence to be eliminated, and planned a comment declaring the two groups independent.
+That reading was wrong, and the reverted accent restores the shared value. The rule that
+survives is narrower and still absolute: **the paper tokens are never edited from the
+chrome side.** They may coincide with a chrome token; they may not be changed by one.
+
+**Rationale**: The paper palette is tuned for ink on white and was already adjusted once
+for contrast (`--grey`, recorded as R11 in the MVP research). A saturated `#FF8C00` on
+paper would be both wrong and a silent print regression.
 
 **Risk**: `.chordcell-actions button` currently styles itself with `--muted` and
 `--chord`, because those buttons sit on a paper tile. That coupling is correct and must

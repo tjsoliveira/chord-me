@@ -273,9 +273,13 @@ default or placeholder.
 - **FR-001**: The interface MUST use a single documented set of design tokens — surfaces,
   text levels, borders, accent, and state colors — defined once and consumed by every
   screen. No screen may introduce a one-off color.
-- **FR-002**: All interface chrome MUST use near-black surfaces with a single saturated
-  orange accent, matching the mockups' palette (`#0D0D0D` background family, `#FF8C00`
-  accent family).
+- **FR-002**: All interface chrome MUST use near-black surfaces with a single warm orange
+  accent. **Amended 2026-08-17, owner decision**: the mockups' `#FF8C00` accent shipped
+  briefly and was reverted. In large solid fills it reads as a warning colour, and it broke
+  an echo worth more than mockup fidelity — the chrome accent deliberately holds the same
+  value as the print token `--chord`, so the tool's highlight is the ink the chord lines
+  print in. The accent family is therefore `#e5946a` / `#a8410f` / `#c14e13`, not the
+  mockup's. The near-black surface family stands.
 - **FR-003**: The accent color MUST be reserved for the primary action, the current
   navigation destination, focus, and active state. It MUST NOT be used decoratively.
 - **FR-004**: Interface typography MUST be monospaced, consistent with the mockups and

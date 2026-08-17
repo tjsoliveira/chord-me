@@ -24,18 +24,20 @@
 
   /* ---- Chrome tokens: screen only, never printed.
 
-     Independent from the paper tokens above by design. Until the Stitch
-     redesign, --app-accent-solid happened to hold the same value as --chord
-     (#a8410f); that was coincidence, not a constraint. The two groups now
-     diverge and MUST stay divergent: the paper accent is tuned for ink on
-     white, the chrome accent for a saturated mark on near-black.
-
      Contrast against --app-surface verified: text 14.9:1, muted 6.4:1,
-     accent 7.4:1, danger 5.3:1. Against --app-bg the accent is 8.0:1.
+     accent 7.3:1, danger 5.3:1, white on accent-solid 6.1:1.
 
-     --app-accent is bright enough to fail as a *background* for white text
-     (2.33:1), so solid accent fills invert their label to --app-on-accent
-     instead. See research.md R1. ---- */
+     On the accent: the Stitch mockups specify #ff8c00, and it shipped briefly
+     under that value. It was reverted by owner decision — the mockup orange
+     reads as a warning colour in big solid blocks, and the accent below is
+     deliberately the same value as the print token --chord, so the tool's
+     accent echoes the ink the chord lines print in. That echo is the reason
+     the palette feels of a piece, and it is worth more here than matching a
+     mockup. See research.md R1.
+
+     If the accent is ever brightened again, --app-on-accent is where the fix
+     goes: white on #ff8c00 measures 2.33:1 and fails AA outright, so a light
+     accent must invert its label to near-black. ---- */
   --app-bg: #141210;
   --app-surface: #1c1a17;
   --app-raised: #23201d;
@@ -50,12 +52,13 @@
   --app-border-hover: #8f8578;
   --app-text: #f2ede6;
   --app-text-muted: #a49c92;
-  --app-accent: #ff8c00;
-  --app-accent-solid: #ff8c00;
-  --app-accent-solid-hover: #ffa033;
-  /* Label colour on any solid accent fill. 8.0:1 on --app-accent-solid,
-     9.2:1 on the hover value. Never use #fff on the accent. */
-  --app-on-accent: #141210;
+  --app-accent: #e5946a;
+  --app-accent-solid: #a8410f;
+  --app-accent-solid-hover: #c14e13;
+  /* Label colour on any solid accent fill. White is correct only because the
+     fill is dark: 6.1:1 on --app-accent-solid, 5.0:1 on the hover value.
+     Read the accent note above before changing either. */
+  --app-on-accent: #ffffff;
   --app-danger: #d9705f;
   --app-danger-solid: #7a1f1f;
   --app-danger-solid-hover: #982828;
@@ -328,9 +331,6 @@ button {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--app-accent-solid);
-  /* Near-black, not white: white on this accent measures 2.33:1 and fails
-     WCAG AA. Only .danger* below override this, and they do so onto a dark
-     red fill where white is correct. */
   color: var(--app-on-accent);
   border: 1px solid transparent;
   border-radius: var(--radius);
