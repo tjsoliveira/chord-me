@@ -27,11 +27,30 @@
   margin-bottom: 14px;
 }
 
+/* Stacked head: the title stops competing for width with the shape strip and
+   takes the whole line; the shapes get the sheet's full width, which also
+   removes the orphan pinned to the right margin when the strip wraps. */
+.sheet-head--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  text-align: center;
+}
+
+.sheet-head--stacked .sheet-shapes {
+  max-width: none;
+  justify-content: center;
+  /* Row gap wider than column gap: without it a wrapped row's chord name sits
+     against the diagram above it. */
+  gap: 14px 10px;
+}
+
 .sheet-title {
   font-size: 26px;
   font-weight: 600;
   line-height: 1.05;
   margin: 0;
+  text-wrap: balance;
   font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 }
 

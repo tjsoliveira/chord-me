@@ -25,6 +25,12 @@ export function Sheet({ title, artist, songKey, capo, chords, sheetText, formatt
     capo ? `Capotraste na ${capo}ª casa` : "",
   ].filter(Boolean);
 
+  /* At this count the shapes no longer fit on one line beside the title:
+     62px each (DIAGRAM_WIDTH) plus a 10px gap against the ~68% of the width
+     the strip was allowed. Rather than squeeze the title, the head stacks. */
+  const STACK_SHAPES_FROM = 5;
+  const stacked = chords.length >= STACK_SHAPES_FROM;
+
   const style = {
     "--columns": formatting.columns,
     "--body-size": formatting.bodySize,
@@ -35,8 +41,8 @@ export function Sheet({ title, artist, songKey, capo, chords, sheetText, formatt
 
   return (
     <div className="sheet print-area" style={style}>
-      <div className="sheet-head">
-        <div>
+      <div className={stacked ? "sheet-head sheet-head--stacked" : "sheet-head"}>
+        <div className="sheet-headline">
           <h2 className="sheet-title">{title}</h2>
           <p className="sheet-artist">{artist}</p>
           {metaParts.length > 0 && <p className="sheet-meta">{metaParts.join(" · ")}</p>}
