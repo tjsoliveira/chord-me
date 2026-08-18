@@ -156,8 +156,12 @@
     padding-left: calc(var(--margin-mm, 18) * 1mm) !important;
     padding-right: calc(var(--margin-mm, 18) * 1mm) !important;
   }
+  /* Margin, never padding: padding-bottom counts as part of the multicol
+     block's own height, so Chrome decided the body did not fit in what was
+     left of page 1 and pushed the whole thing to page 2, leaving a page that
+     held nothing but the header. A margin does not join that measurement. */
   .sheet-body {
-    padding-bottom: calc(var(--margin-mm, 18) * 1mm) !important;
+    margin-bottom: calc(var(--margin-mm, 18) * 1mm) !important;
     height: auto;
     overflow: visible;
   }
