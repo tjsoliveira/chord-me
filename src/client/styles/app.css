@@ -923,11 +923,6 @@ button.danger-solid:hover:not(:disabled) {
   color: var(--app-accent);
 }
 
-.chip-frets {
-  color: var(--app-text-muted);
-  font-size: var(--fs-label);
-}
-
 .chip button {
   min-height: 20px;
   padding: 0 4px;
@@ -940,6 +935,146 @@ button.danger-solid:hover:not(:disabled) {
 .chip button:hover:not(:disabled) {
   background: transparent;
   color: var(--app-danger);
+}
+
+/* Chord popover: the add half of the chip strip, kept next to the chip rules
+   because a cell in the grid and the chip it produces have to keep reading as
+   the same object. Replaces an inline search field whose list of names could
+   only be read, never recognised. */
+.chordpop {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The strip's controls have shared a 28px baseline since the redesign; a taller
+   trigger would break the line. */
+.chordpop-trigger {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: var(--fs-meta);
+}
+
+.chordpop-panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: var(--z-dropdown);
+  width: min(384px, calc(100vw - 32px));
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--radius-lg);
+  /* No shadow: soft shadows are on the anti-reference list, and the strong
+     border already separates the panel from the toolbar behind it. */
+  animation: chordpop-in 120ms var(--ease);
+}
+
+/* Near the right edge the panel hangs from the other corner instead of off
+   screen. The component measures the trigger and picks. */
+.chordpop-panel--right {
+  left: auto;
+  right: 0;
+}
+
+@keyframes chordpop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chordpop-panel {
+    animation: none;
+  }
+}
+
+/* Stays put while the grid scrolls under it: the query is the state you are
+   editing, and it must not leave the panel. */
+.chordpop-search {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px var(--space-2);
+  font-size: var(--fs-base);
+  background: var(--app-bg);
+  border: 0;
+  border-bottom: 1px solid var(--app-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.chordpop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  align-items: start;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  max-height: min(360px, 55vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* A button carrying no button chrome, so the cell still reads as paper - the
+   same trade as .chordcell-open on the catalog page. */
+.chordpop-cell {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: var(--space-1) 0 2px;
+  min-height: 0;
+  background: var(--paper);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.chordpop-cell:hover:not(:disabled) {
+  background: var(--paper);
+  border-color: var(--app-accent);
+}
+
+.chordpop-cell:active:not(:disabled) {
+  transform: none;
+}
+
+/* Own ring: the global :focus-visible outline is tuned for the dark chrome and
+   would be invisible against a paper cell. */
+.chordpop-cell:focus-visible {
+  outline: none;
+  border-color: var(--app-accent-solid);
+  box-shadow: 0 0 0 2px var(--app-accent-solid);
+}
+
+/* State, not decoration, and the selector is the ARIA attribute itself: the
+   mark cannot drift away from what is actually on the sheet. Same treatment as
+   the card the catalog page marks as being edited. */
+.chordpop-cell[aria-pressed="true"] {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 2px var(--app-accent);
+}
+
+.chordpop-check {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  border-radius: 50%;
+  background: var(--app-accent-solid);
+  color: var(--app-on-accent);
+}
+
+.chordpop-empty {
+  padding: var(--space-3);
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
 }
 
 /* Two panes: the editor takes the flexible space, the paper keeps its natural

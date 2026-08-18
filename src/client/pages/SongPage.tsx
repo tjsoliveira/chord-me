@@ -150,7 +150,7 @@ export function SongPage() {
                 <div className="rowitem-meta">
                   {v.songKey ? `Tom ${v.songKey}` : "sem tom"}
                   {v.capo ? ` · capo ${v.capo}ª` : ""}
-                  {v.chordIds.length > 0 ? ` · ${v.chordIds.length} diagramas` : ""}
+                  {v.chordIds.length > 0 ? ` · ${v.chordIds.length} acordes` : ""}
                 </div>
               </Link>
               <div className="rowitem-actions">

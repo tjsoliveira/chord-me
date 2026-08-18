@@ -159,7 +159,7 @@ export function VersionPage() {
         </div>
 
         <div className="toolbar-line">
-          <span className="toolbar-label">Diagramas</span>
+          <span className="toolbar-label">Acordes</span>
           <ChordPicker
             allChords={allChords}
             selectedIds={chordIds}
@@ -183,7 +183,7 @@ export function VersionPage() {
           />
           <div className="editor-status">
             <span>{lineCount} linhas</span>
-            <span>{selectedChords.length} diagramas</span>
+            <span>{selectedChords.length} acordes</span>
             <span style={{ marginLeft: "auto" }}>
               {dirty ? "não salvo · ⌘S" : "salvo"}
             </span>
