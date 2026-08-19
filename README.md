@@ -1,12 +1,9 @@
 # chord-me
 
-Local, login-free chord sheet manager. Replaces the static `formatador-cifra.html`
-with a small app that stores a reusable chord catalog, songs with multiple versions,
-and per-version print formatting — while keeping the same printed output.
+Local, login-free chord sheet manager. A small app that stores a reusable chord catalog, 
+songs with multiple versions, and per-version print formatting — while keeping the same printed output.
 
-Personal, single-user, never hosted. See `.specify/memory/constitution.md` for the
-governing principles (local-first, print-output-is-the-contract, YAGNI, owned schema,
-pragmatic testing).
+Personal, single-user, never hosted.
 
 ## Stack
 
