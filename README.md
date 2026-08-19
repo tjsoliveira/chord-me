@@ -8,6 +8,11 @@ Personal, single-user, never hosted. See `.specify/memory/constitution.md` for t
 governing principles (local-first, print-output-is-the-contract, YAGNI, owned schema,
 pragmatic testing).
 
+## Stack
+
+React 18 + Vite client, Express + better-sqlite3 server, TypeScript throughout, Vitest
+for tests.
+
 ## Run
 
 ```bash
@@ -38,6 +43,20 @@ separate render path. Use the "Imprimir / PDF" button or `Cmd/Ctrl+P`. See
 `specs/001-chord-sheet-mvp/contracts/print-contract.md` for the exact contract, and
 `formatador-cifra.html` (kept at the repo root) as the visual reference baseline.
 
+## Structure
+
+Client pages (`src/client/pages/`):
+
+- `LibraryPage` — song list, entry point.
+- `SongPage` — a song's versions.
+- `VersionPage` — the editor + printable sheet for one version.
+- `ChordsPage` — the reusable chord catalog.
+
+Server routes (`src/server/routes/`): `songs.ts`, `versions.ts`, `chords.ts` — REST API
+backing the pages above, over the SQLite file in `data/`.
+
 ## Project docs
 
-Full spec, plan, data model, and API contracts: `specs/001-chord-sheet-mvp/`.
+Full spec, plan, data model, and API contracts: `specs/001-chord-sheet-mvp/` (MVP) and
+`specs/002-ui-redesign/` (later UI redesign — side rail nav, chord picker popover,
+stacked sheet head).
