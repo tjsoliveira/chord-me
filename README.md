@@ -40,6 +40,20 @@ separate render path. Use the "Imprimir / PDF" button or `Cmd/Ctrl+P`. See
 `specs/001-chord-sheet-mvp/contracts/print-contract.md` for the exact contract, and
 `formatador-cifra.html` (kept at the repo root) as the visual reference baseline.
 
+## Screenshots
+
+**Editor de versão** — letra e cifra à esquerda, preview de impressão ao vivo à direita
+(mesma página que sai na hora do `Imprimir / PDF`), com controles de colunas, corpo,
+entrelinha, margem, capotraste e acordes usados na versão.
+
+![Editor de versão](docs/screenshots/version-editor.png)
+
+**Catálogo de acordes** — biblioteca de diagramas reutilizáveis (56 formas no exemplo),
+com busca por nome e um formulário lateral pra criar acordes novos a partir das casas e
+dedos.
+
+![Catálogo de acordes](docs/screenshots/chords.png)
+
 ## Structure
 
 Client pages (`src/client/pages/`):
