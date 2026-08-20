@@ -42,17 +42,16 @@ separate render path. Use the "Imprimir / PDF" button or `Cmd/Ctrl+P`. See
 
 ## Screenshots
 
-**Editor de versão** — letra e cifra à esquerda, preview de impressão ao vivo à direita
-(mesma página que sai na hora do `Imprimir / PDF`), com controles de colunas, corpo,
-entrelinha, margem, capotraste e acordes usados na versão.
+**Version editor** — lyrics and chords on the left, a live print preview on the right
+(the same page that comes out when you hit `Imprimir / PDF`), with controls for
+columns, body size, line height, margin, capo, and the chords used in the version.
 
-![Editor de versão](docs/screenshots/version-editor.png)
+![Version editor](docs/screenshots/version-editor.png)
 
-**Catálogo de acordes** — biblioteca de diagramas reutilizáveis (56 formas no exemplo),
-com busca por nome e um formulário lateral pra criar acordes novos a partir das casas e
-dedos.
+**Chord catalog** — a library of reusable diagrams (56 shapes in the example), with a
+search by name and a side form to create new chords from frets and fingers.
 
-![Catálogo de acordes](docs/screenshots/chords.png)
+![Chord catalog](docs/screenshots/chords.png)
 
 ## Structure
 
