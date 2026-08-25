@@ -132,11 +132,18 @@
   font-weight: 700;
 }
 
+/* Section headings sat in --muted, the same grey as the caption and the meta
+   line, which made the one structural landmark on the page the faintest thing
+   on it. Full ink plus a hairline: the hierarchy is carried by weight and a
+   separator, so it survives a mono laser print where every hue is grey.
+   Deliberate, visible change to printed output (Constitution Principle II). */
 .sheet pre.s {
-  color: var(--muted);
+  color: var(--ink);
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-top: 9px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--rule);
 }
 
 @media print {
