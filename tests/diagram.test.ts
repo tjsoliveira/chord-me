@@ -47,6 +47,39 @@ describe("computeDiagram", () => {
     expect(g.barre).not.toBeNull();
   });
 
+  it("does not barre D, whose two lowest-fret strings are three apart", () => {
+    // xx0232: min fret 2 on strings 4 and 6 with fret 3 between them - the same
+    // signature as Bm, but only three strings wide, so it is three fingers.
+    const frets: Frets = ["x", "x", 0, 2, 3, 2];
+    expect(computeDiagram(frets, null, null).barre).toBeNull();
+  });
+
+  it("still barres Bm, whose identical signature reaches across five strings", () => {
+    const frets: Frets = ["x", 2, 4, 4, 3, 2];
+    const g = computeDiagram(frets, null, null);
+    expect(g.barre?.x1).toBe(g.stringX[1]);
+    expect(g.barre?.x2).toBe(g.stringX[5]);
+  });
+
+  it("lets a supplied fingering overrule the shape: one finger, one barre", () => {
+    // A is the baseline's known over-fire - 3 strings on fret 2 drawn as a
+    // barre. Distinct fingers on those strings say otherwise.
+    const frets: Frets = ["x", 0, 2, 2, 2, 0];
+    expect(computeDiagram(frets, "__123_", null).barre).toBeNull();
+  });
+
+  it("spans the barre over the strings sharing a repeated finger", () => {
+    const frets: Frets = ["x", 2, 4, 4, 3, 2]; // Bm, index finger on 2 and 6
+    const g = computeDiagram(frets, "_13421", null);
+    expect(g.barre?.x1).toBe(g.stringX[1]);
+    expect(g.barre?.x2).toBe(g.stringX[5]);
+  });
+
+  it("falls back to the shape when the fingering carries no digits", () => {
+    const frets: Frets = [1, 3, 3, 2, 1, 1]; // F
+    expect(computeDiagram(frets, "______", null).barre).not.toBeNull();
+  });
+
   it("marks muted and open strings correctly below the grid", () => {
     const frets: Frets = ["x", 0, 2, 2, 2, 0]; // A
     const g = computeDiagram(frets, null, null);
