@@ -40,8 +40,11 @@ function columnsOf(grid: HTMLElement) {
  * the whole catalog of them has no business living in the toolbar strip.
  *
  * The grid shows the whole catalog and marks what is already on the sheet, so
- * clicking a cell toggles. Nothing is removed from the grid on a pick, which is
- * what keeps the cells from shifting under the pointer mid-session.
+ * clicking a cell toggles. A pick never removes the cell it landed on — the
+ * check mark is the feedback — but it does clear the query, which reflows the
+ * grid back to the full catalog. Cells shifting under the pointer is the price:
+ * the pick is finished, and the next chord is a different search, so leaving a
+ * spent query in the field costs a select-all on every single add.
  */
 export function ChordPicker({ allChords, selectedIds, onChange }: Props) {
   const [open, setOpen] = useState(false);
@@ -296,8 +299,12 @@ export function ChordPicker({ allChords, selectedIds, onChange }: Props) {
                       tabIndex={i === cellIdx ? 0 : -1}
                       onFocus={() => setCellIndex(i)}
                       onClick={() => {
-                        setCellIndex(i);
                         toggle(c);
+                        // The query has done its job once the pick lands, and
+                        // the next chord is a different search. Enter already
+                        // cleared for this reason; a click was the odd one out.
+                        setQuery("");
+                        setCellIndex(0);
                       }}
                     >
                       {/* capo={null}: the popover is a catalog view, and a capo
