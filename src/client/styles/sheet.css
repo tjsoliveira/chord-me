@@ -77,13 +77,15 @@
   max-width: 68%;
 }
 
+/* --shape-scale defaults to 1, so the sheet — the print contract — renders
+   exactly as before. Only the on-screen chord catalog sets it. */
 .sheet-shape {
   text-align: center;
-  width: 62px;
+  width: calc(62px * var(--shape-scale, 1));
 }
 
 .sheet-shape .nm {
-  font-size: 11px;
+  font-size: calc(11px * var(--shape-scale, 1));
   font-weight: 700;
   color: var(--chord);
   margin-bottom: 1px;
@@ -96,7 +98,7 @@
 }
 
 .sheet-shape .cap {
-  font-size: 7.5px;
+  font-size: calc(7.5px * var(--shape-scale, 1));
   line-height: 1.25;
   color: var(--muted);
   margin-top: 1px;
