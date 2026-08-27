@@ -660,9 +660,12 @@ button.danger-solid:hover:not(:disabled) {
   }
 }
 
+/* The column min tracks the diagram: 124px of shape (62 at CATALOG_SCALE 2)
+   plus the 10px .chordcell frame, keeping the ~24px of slack the 96px min gave
+   the 62px shape. */
 .chordgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   gap: var(--space-2);
   margin-bottom: var(--space-5);
 }
@@ -785,6 +788,14 @@ button.danger-solid:hover:not(:disabled) {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
+}
+
+/* Screen only: the shape is a fixed-width block, so it would sit against the
+   left edge of a stretched cell. Scoped to the catalog's own classes — the
+   sheet stays governed by sheet.css alone. */
+.chordcell-open .sheet-shape,
+.chord-preview .sheet-shape {
+  margin-inline: auto;
 }
 
 .chord-preview {

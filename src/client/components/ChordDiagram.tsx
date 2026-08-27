@@ -1,21 +1,33 @@
+import type { CSSProperties } from "react";
 import { computeDiagram, DIAGRAM_WIDTH } from "../../shared/diagram.js";
 import type { Chord } from "../../shared/types.js";
 
 interface Props {
   chord: Chord;
   capo: number | null;
+  /** Screen-only magnification. The sheet must keep 1 — print contract. */
+  scale?: number;
 }
 
-export function ChordDiagram({ chord, capo }: Props) {
+export function ChordDiagram({ chord, capo, scale = 1 }: Props) {
   const g = computeDiagram(chord.frets, chord.fingers, capo);
 
   return (
-    <div className="sheet-shape">
+    <div
+      className="sheet-shape"
+      style={scale === 1 ? undefined : ({ "--shape-scale": scale } as CSSProperties)}
+    >
       <div className="nm">
         {chord.name}
         {capo ? "*" : ""}
       </div>
-      <svg width={DIAGRAM_WIDTH} height={g.height} viewBox={`0 0 ${DIAGRAM_WIDTH} ${g.height}`}>
+      {/* viewBox stays at the printed geometry, so every stroke width, radius and
+          font size below scales with the box instead of being recomputed. */}
+      <svg
+        width={DIAGRAM_WIDTH * scale}
+        height={g.height * scale}
+        viewBox={`0 0 ${DIAGRAM_WIDTH} ${g.height}`}
+      >
         {g.capoBar && (
           <>
             <rect

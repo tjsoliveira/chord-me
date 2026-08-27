@@ -8,6 +8,10 @@ import { useDocumentTitle } from "../useDocumentTitle.js";
 
 const emptyForm = { id: null as number | null, name: "", frets: "", fingers: "", caption: "" };
 
+// The catalog is a screen for reading shapes, not a print preview: at the
+// sheet's 62px the finger numbers and the ×/○ markers are unreadable.
+const CATALOG_SCALE = 2;
+
 export function ChordsPage() {
   useDocumentTitle("Acordes · chord-me");
   const [chords, setChords] = useState<Chord[]>([]);
@@ -145,7 +149,7 @@ export function ChordsPage() {
                   aria-label={`Editar ${c.name}`}
                   aria-pressed={form.id === c.id}
                 >
-                  <ChordDiagram chord={c} capo={null} />
+                  <ChordDiagram chord={c} capo={null} scale={CATALOG_SCALE} />
                 </button>
 
                 {confirmingId === c.id ? (
@@ -249,7 +253,7 @@ export function ChordsPage() {
           <div className="field">
             <label>Prévia</label>
             <div className="chord-preview" style={{ alignSelf: "center" }}>
-              <ChordDiagram chord={preview} capo={null} />
+              <ChordDiagram chord={preview} capo={null} scale={CATALOG_SCALE} />
             </div>
           </div>
         )}
