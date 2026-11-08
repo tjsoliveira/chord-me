@@ -91,9 +91,33 @@ describe("GET /api/songs version refs", () => {
 
     const [song] = await listSongs();
     expect(song.versions).toEqual([
-      { id: expect.any(Number), label: "Original", songKey: "G", capo: 2 },
-      { id: expect.any(Number), label: "Acústico", songKey: "E", capo: null },
+      {
+        id: expect.any(Number),
+        label: "Original",
+        songKey: "G",
+        capo: 2,
+        updatedAt: expect.any(String),
+      },
+      {
+        id: expect.any(Number),
+        label: "Acústico",
+        songKey: "E",
+        capo: null,
+        updatedAt: expect.any(String),
+      },
     ]);
+  });
+
+  it("carries each version's last save time, which the library's Recentes sorts on", async () => {
+    const songId = insertSong("Atos 2", "Gabriela Rocha");
+    const versionId = insertVersion(songId, "Tom Em", 0, "Em", null);
+    db.prepare("UPDATE song_versions SET updated_at = ? WHERE id = ?").run(
+      "2026-10-08T19:41:14.964Z",
+      versionId
+    );
+
+    const [song] = await listSongs();
+    expect(song.versions[0].updatedAt).toBe("2026-10-08T19:41:14.964Z");
   });
 
   it("represents 'no capo' as null, the only encoding the schema allows", async () => {

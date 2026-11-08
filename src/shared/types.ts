@@ -53,6 +53,8 @@ export interface VersionRef {
   songKey: string | null;
   /** 1–12, or null for no capo. The schema has no encoding for capo 0. */
   capo: number | null;
+  /** ISO timestamp of the version's last save. Orders the library's Recentes. */
+  updatedAt: string;
 }
 
 export interface SongSummary {

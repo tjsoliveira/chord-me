@@ -19,13 +19,15 @@ interface VersionRefRow {
   label: string;
   song_key: string | null;
   capo: number | null;
+  updated_at: string;
 }
 
 /**
  * Attaches each song's version refs with a single extra query, so listing N
- * songs costs 2 queries rather than N+1. Key and capo travel with the ref so
- * the library can show what a version is without opening it; sheetText never
- * enters a summary response.
+ * songs costs 2 queries rather than N+1. Key, capo and last-save time travel
+ * with the ref so the library can show what a version is, and which ones were
+ * touched lately, without opening it; sheetText never enters a summary
+ * response.
  */
 function withVersions(db: Database.Database, rows: SummaryRow[]): SongSummary[] {
   if (rows.length === 0) return [];
@@ -33,7 +35,7 @@ function withVersions(db: Database.Database, rows: SummaryRow[]): SongSummary[] 
   const placeholders = rows.map(() => "?").join(",");
   const versionRows = db
     .prepare(
-      `SELECT id, song_id, label, song_key, capo FROM song_versions
+      `SELECT id, song_id, label, song_key, capo, updated_at FROM song_versions
        WHERE song_id IN (${placeholders})
        ORDER BY song_id, position`
     )
@@ -41,7 +43,13 @@ function withVersions(db: Database.Database, rows: SummaryRow[]): SongSummary[] 
 
   const bySong = new Map<number, VersionRef[]>();
   for (const v of versionRows) {
-    const ref: VersionRef = { id: v.id, label: v.label, songKey: v.song_key, capo: v.capo };
+    const ref: VersionRef = {
+      id: v.id,
+      label: v.label,
+      songKey: v.song_key,
+      capo: v.capo,
+      updatedAt: v.updated_at,
+    };
     const list = bySong.get(v.song_id);
     if (list) list.push(ref);
     else bySong.set(v.song_id, [ref]);
