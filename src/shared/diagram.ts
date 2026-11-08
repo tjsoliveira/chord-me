@@ -156,10 +156,16 @@ export function computeDiagram(frets: Frets, fingers: string | null, capo: numbe
       }
     : null;
 
+  // The barre already says one finger lies across those strings, so its number
+  // is printed once, on the bass end, as chord books do. Repeating it on every
+  // string read as separate fingers (F#m came out 1 · · 1 1 1). Deliberate
+  // divergence from formatador-cifra.html (Principle II).
+  const underBarre = span ? span.at.filter((i) => frets[i] === span.fret).slice(1) : [];
+
   const dots: Dot[] = [];
   frets.forEach((f, i) => {
     if (!isFretted(f)) return;
-    const finger = /[1-4]/.test(fg[i]) ? fg[i] : null;
+    const finger = /[1-4]/.test(fg[i]) && !underBarre.includes(i) ? fg[i] : null;
     dots.push({ x: stringX[i], y: top + (rel(f) - 0.5) * DY, finger });
   });
 

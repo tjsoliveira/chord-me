@@ -131,7 +131,8 @@ Ported from the baseline's geometry, extended for frets above 9 (research R4).
   than drawing unusable empty frets.
 - A barre is drawn when the lowest fretted position repeats across three or more strings, or
   across two strings with a higher fretted note between them.
-- Finger numbers, when supplied, are drawn inside the dots.
+- Finger numbers, when supplied, are drawn inside the dots. Along a barre the number appears
+  once, on the bass-end dot; the other dots under the barre stay blank.
 - Below the grid: `×` for muted strings, a hollow circle for open strings, a filled circle for
   fretted strings.
 - With a capo set, a capo bar is drawn above the grid carrying the fret number, and the chord

@@ -109,4 +109,16 @@ describe("computeDiagram", () => {
     const firstDot = g.dots.find((d) => d.x === g.stringX[0]);
     expect(firstDot?.finger).toBe("1");
   });
+
+  it("prints the barre finger once, on its bass end", () => {
+    const frets: Frets = [2, 4, 4, 2, 2, 2]; // F#m
+    const g = computeDiagram(frets, "134111", null);
+    expect(g.dots.map((d) => d.finger)).toEqual(["1", "3", "4", null, null, null]);
+  });
+
+  it("starts the barre's number where the barre starts, not on string 6", () => {
+    const frets: Frets = ["x", 2, 4, 4, 3, 2]; // Bm
+    const g = computeDiagram(frets, "_13421", null);
+    expect(g.dots.map((d) => d.finger)).toEqual(["1", "3", "4", "2", null]);
+  });
 });
