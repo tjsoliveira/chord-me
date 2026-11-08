@@ -449,11 +449,6 @@ button.danger-solid:hover:not(:disabled) {
   background: var(--app-surface);
 }
 
-/* The sub-row list below carries the separator instead. */
-.rowitem--grouped {
-  border-bottom: 0;
-}
-
 /* The title is the link; actions are siblings, never nested inside an anchor. */
 .rowitem-link {
   flex: 1;
@@ -475,46 +470,6 @@ button.danger-solid:hover:not(:disabled) {
   font-size: var(--fs-meta);
   color: var(--app-text-muted);
   margin-top: 2px;
-}
-
-/* Version sub-rows under a song in the library. Indented and quieter than the
-   song row so the hierarchy reads without a nested frame. */
-.subrows {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--app-border);
-}
-
-.subrow {
-  display: flex;
-  border-left: 1px solid var(--app-border);
-}
-
-.subrow-link {
-  flex: 1;
-  min-width: 0;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--fs-meta);
-  color: var(--app-text-muted);
-  text-decoration: none;
-  transition: color var(--dur) var(--ease);
-}
-
-.subrow-link:hover {
-  color: var(--app-accent);
-}
-
-/* Musical identity of a version, on the row the label already occupies. Quiet
-   enough not to compete with the label, loud enough to be scanned down the
-   column when picking between versions of the same song. */
-.subrow-meta {
-  flex-shrink: 0;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--fs-label);
-  letter-spacing: 0.06em;
-  color: var(--app-text-muted);
-  white-space: nowrap;
 }
 
 .rowitem-actions {
@@ -551,6 +506,376 @@ button.danger-solid:hover:not(:disabled) {
 .createbar .field {
   flex: 1;
   min-width: 140px;
+}
+
+/* ==========================================================================
+   Library — one field that searches and creates, recents, the A–Z index
+
+   Recents and the index share one column template, so title, artist and
+   version sit in the same columns in both lists and the page reads as one
+   index with a short list of what is in progress on top.
+   ========================================================================== */
+
+.library {
+  --lib-gutter: 1.25rem;
+  --lib-cols: var(--lib-gutter) minmax(0, 3fr) minmax(0, 2fr) minmax(0, 3fr) 6rem;
+}
+
+/* The entry is the screen's primary control, so it sits taller than the
+   32px fields elsewhere. */
+.lib-entry {
+  margin-bottom: var(--space-5);
+}
+
+.lib-query {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+}
+
+/* Field and panel read as one object: the panel hangs off the field's lower
+   edge in the same border colour, and the field gives up its lower corners. */
+.lib-entry.has-create .lib-query {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.lib-create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  animation: lib-create-in 150ms var(--ease);
+}
+
+@keyframes lib-create-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+/* The offer: one quiet line while results exist, so the solid create button
+   never outshouts the songs the query already found. */
+.lib-create--offer {
+  padding: var(--space-1);
+}
+
+.lib-create-offer {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.lib-create-offer .lib-create-title {
+  color: var(--app-text);
+}
+
+.lib-create-artist {
+  flex: 2 1 180px;
+}
+
+.lib-create-label {
+  flex: 1 1 120px;
+}
+
+.lib-create-key {
+  flex: 0 0 72px;
+}
+
+.lib-create-capo {
+  flex: 0 0 64px;
+}
+
+/* Labels sit above the inputs, so the button drops to the inputs' line. */
+.lib-create-submit {
+  margin-top: calc(var(--fs-label) * 1.5 + var(--space-1));
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* The verb is the app's button voice; the title is the owner's text and
+   keeps its own case. Long titles end in an ellipsis rather than stretching
+   the button off the line. */
+.lib-create-title {
+  display: inline-block;
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.lib-create-error {
+  flex-basis: 100%;
+}
+
+.lib-section + .lib-section {
+  margin-top: var(--space-5);
+}
+
+/* Aligned with the titles below it, not with the gutter. */
+.lib-section-head {
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--app-text);
+  margin: 0 0 var(--space-2);
+  padding-left: calc(var(--space-2) + var(--lib-gutter) + var(--space-3));
+}
+
+.lib-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--app-border);
+}
+
+.recent-row,
+.songrow {
+  display: grid;
+  grid-template-columns: var(--lib-cols);
+  column-gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--app-border);
+  transition: background var(--dur) var(--ease);
+}
+
+.recent-row:hover,
+.songrow:hover {
+  background: var(--app-surface);
+}
+
+/* A recent row is one link to the version: the reprint is one click. */
+.recent-row {
+  min-height: 40px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recent-row:focus-visible {
+  outline-offset: -2px;
+}
+
+.recent-title {
+  grid-column: 2;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur) var(--ease);
+}
+
+.recent-row:hover .recent-title {
+  color: var(--app-accent);
+}
+
+.recent-artist,
+.recent-version {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-artist {
+  grid-column: 3;
+}
+
+/* Starts where the version chips start in the index below. */
+.recent-version {
+  grid-column: 4;
+  padding-left: var(--space-2);
+}
+
+.recent-date {
+  grid-column: 5;
+  justify-self: end;
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.songrow {
+  min-height: 42px;
+}
+
+.songrow-gutter {
+  font-weight: 700;
+  color: var(--app-text-muted);
+  text-align: center;
+}
+
+/* Marks what Enter will open, so the key never does something unseen. */
+.songrow-gutter.is-enter {
+  color: var(--app-accent);
+}
+
+.songrow-title {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--app-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color var(--dur) var(--ease);
+}
+
+.songrow-title:hover {
+  color: var(--app-accent);
+}
+
+.songrow-artist {
+  min-width: 0;
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.songrow-versions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-block: var(--space-1);
+}
+
+.songrow-none {
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+}
+
+.songrow-actions {
+  justify-self: end;
+}
+
+/* Quiet at rest, red on approach: a column of red labels down every row
+   would be colour without state. The fill on hover is the shared .danger
+   one, and the inline confirmation still guards the delete. */
+.songrow-actions button.danger {
+  color: var(--app-text-muted);
+}
+
+.songrow-actions button.danger:hover:not(:disabled),
+.songrow-actions button.danger:focus-visible {
+  color: #fff;
+  background: var(--app-danger-solid);
+}
+
+/* Confirmation takes over the row past the title, so the column template, and
+   with it every other row's alignment, stays put. */
+.songrow-confirm {
+  grid-column: 3 / -1;
+  justify-self: end;
+  flex-wrap: wrap;
+}
+
+/* A version, opened from the index. Same object as the chord chip in the
+   editor toolbar: raised fill, strong edge, the name first. */
+.vchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  background: var(--app-raised);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--radius);
+  font-size: var(--fs-meta);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.vchip:hover {
+  border-color: var(--app-accent);
+}
+
+.vchip-label {
+  color: var(--app-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur) var(--ease);
+}
+
+.vchip:hover .vchip-label {
+  color: var(--app-accent);
+}
+
+.vchip-meta {
+  color: var(--app-text-muted);
+}
+
+.lib-noresult {
+  margin: 0;
+  padding: var(--space-2) var(--space-2) 0;
+  padding-left: calc(var(--space-2) + var(--lib-gutter) + var(--space-3));
+  font-size: var(--fs-meta);
+  color: var(--app-text-muted);
+}
+
+/* Narrow: the title keeps the first line with the action; artist and
+   versions drop beneath it, still clear of the gutter. */
+@media (max-width: 640px) {
+  .recent-row,
+  .songrow {
+    grid-template-columns: var(--lib-gutter) minmax(0, 1fr) auto;
+  }
+  .recent-title {
+    grid-column: 2;
+  }
+  .recent-date {
+    grid-column: 3;
+  }
+  .recent-artist {
+    display: none;
+  }
+  .recent-version {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    padding-left: 0;
+    padding-bottom: var(--space-1);
+  }
+  .songrow-gutter {
+    grid-row: 1;
+  }
+  .songrow-title {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .songrow-actions {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .songrow-artist {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .songrow-versions {
+    grid-column: 2 / -1;
+    grid-row: 3;
+  }
+  .songrow-confirm {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    justify-self: start;
+    padding-bottom: var(--space-2);
+  }
 }
 
 /* ==========================================================================
