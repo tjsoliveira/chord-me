@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { runMigrations } from "../src/server/migrate.js";
 import { songsRouter } from "../src/server/routes/songs.js";
-import type { SongSummary } from "../src/shared/types.js";
+import type { Song, SongSummary } from "../src/shared/types.js";
 
 /**
  * Covers the summary response shape rather than the UI that reads it: the
@@ -16,6 +16,9 @@ import type { SongSummary } from "../src/shared/types.js";
  * to keep sheetText out of this payload. Both are silent failures — a missing
  * capo just looks like an unset one, and a leaked sheetText is invisible until
  * the library is slow.
+ *
+ * Also covers creating a song together with its first version, which has to
+ * be all-or-nothing: the library opens the new version's editor directly.
  *
  * Uses a bare Express instance over an ephemeral port instead of a request
  * helper, so no dependency is added for one test (Constitution Principle III).
@@ -165,5 +168,50 @@ describe("GET /api/songs version refs", () => {
     const b = songs.find((s) => s.title === "Sem versões")!;
     expect(a.versions.map((v) => v.label)).toEqual(["primeira", "segunda"]);
     expect(b.versions).toEqual([]);
+  });
+});
+
+describe("POST /api/songs with a first version", () => {
+  async function createSong(body: unknown): Promise<Response> {
+    return fetch(`${baseUrl}/api/songs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  it("creates the song and its first version together, key and capo included", async () => {
+    const res = await createSong({
+      title: "Lugar Secreto",
+      artist: "Gabriela Rocha",
+      firstVersion: { label: "Tom D", songKey: "D", capo: 2 },
+    });
+    expect(res.status).toBe(201);
+    const song = (await res.json()) as Song;
+    expect(song.versions).toHaveLength(1);
+    expect(song.versions[0]).toMatchObject({ songId: song.id, label: "Tom D", songKey: "D", capo: 2 });
+
+    const [summary] = await listSongs();
+    expect(summary.versions.map((v) => v.id)).toEqual([song.versions[0].id]);
+  });
+
+  it("names an unlabelled first version 'Principal'", async () => {
+    const res = await createSong({ title: "Atos 2", artist: "", firstVersion: { label: "  " } });
+    const song = (await res.json()) as Song;
+    expect(song.versions[0].label).toBe("Principal");
+    expect(song.versions[0].songKey).toBeNull();
+    expect(song.versions[0].capo).toBeNull();
+  });
+
+  it("leaves no song behind when the first version is invalid", async () => {
+    const res = await createSong({ title: "Órfã", artist: "", firstVersion: { capo: 13 } });
+    expect(res.status).toBe(400);
+    expect(await listSongs()).toEqual([]);
+  });
+
+  it("still creates a bare song when no first version is asked for", async () => {
+    const res = await createSong({ title: "Só a música", artist: "" });
+    const song = (await res.json()) as Song;
+    expect(song.versions).toEqual([]);
   });
 });

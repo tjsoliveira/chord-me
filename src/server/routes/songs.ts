@@ -3,7 +3,10 @@ import { Router } from "express";
 import type { Song, SongSummary, SongVersion, VersionRef } from "../../shared/types.js";
 import { validateSongTitle } from "../../shared/validation.js";
 import { ApiError } from "../errors.js";
-import { rowToVersion, type VersionRow } from "./versions.js";
+import { insertVersion, rowToVersion, type VersionRow } from "./versions.js";
+
+/** What an unnamed first version is called. Most songs only ever have this one. */
+export const FIRST_VERSION_LABEL = "Principal";
 
 interface SongRow {
   id: number;
@@ -82,22 +85,42 @@ export function songsRouter(db: Database.Database): Router {
     res.json(withVersions(db, rows));
   });
 
+  /**
+   * With `firstVersion`, the song and its first version are created together,
+   * so the library can open the sheet editor straight away. Both writes share
+   * one transaction: a version that fails validation takes the song with it.
+   */
   router.post("/", (req, res) => {
-    const errors = validateSongTitle(req.body?.title ?? "");
+    const body = req.body ?? {};
+    const errors = validateSongTitle(body.title ?? "");
     if (Object.keys(errors).length > 0) {
       throw ApiError.validation("Invalid song.", errors);
     }
-    const now = new Date().toISOString();
-    const info = db
-      .prepare("INSERT INTO songs (title, artist, created_at, updated_at) VALUES (?, ?, ?, ?)")
-      .run(req.body.title.trim(), req.body.artist ?? "", now, now);
-    const song: Song = {
-      id: Number(info.lastInsertRowid),
-      title: req.body.title.trim(),
-      artist: req.body.artist ?? "",
-      versions: [],
-    };
-    res.status(201).json(song);
+    const title: string = body.title.trim();
+    const artist: string = body.artist ?? "";
+    const first = body.firstVersion;
+
+    const create = db.transaction((): Song => {
+      const now = new Date().toISOString();
+      const info = db
+        .prepare("INSERT INTO songs (title, artist, created_at, updated_at) VALUES (?, ?, ?, ?)")
+        .run(title, artist, now, now);
+      const id = Number(info.lastInsertRowid);
+
+      const versions: SongVersion[] = [];
+      if (first && typeof first === "object") {
+        const label =
+          typeof first.label === "string" && first.label.trim() !== ""
+            ? first.label
+            : FIRST_VERSION_LABEL;
+        versions.push(
+          insertVersion(db, id, { label, songKey: first.songKey ?? null, capo: first.capo ?? null })
+        );
+      }
+      return { id, title, artist, versions };
+    });
+
+    res.status(201).json(create());
   });
 
   router.get("/:id", (req, res) => {

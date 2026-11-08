@@ -74,62 +74,75 @@ function replaceChordSelection(db: Database.Database, versionId: number, chordId
   chordIds.forEach((chordId, i) => insert.run(versionId, chordId, i));
 }
 
+/**
+ * Validates and inserts one version, chord selection included. Bad input
+ * throws an ApiError before anything is written, and a caller that runs this
+ * inside its own db.transaction gets a rollback for free: creating a song
+ * together with its first version relies on that to never leave a song behind
+ * without the version it asked for.
+ */
+export function insertVersion(
+  db: Database.Database,
+  songId: number,
+  // A request body, so its fields are only trusted after the checks below.
+  body: Record<string, any>
+): SongVersion {
+  const labelErrors = validateVersionLabel(body.label ?? "");
+  const capoErrors = validateCapo(body.capo ?? null);
+  const formatting = { ...DEFAULT_FORMATTING, ...(body.formatting ?? {}) };
+  const formattingErrors = validateFormatting(formatting);
+  const errors = { ...labelErrors, ...capoErrors, ...formattingErrors };
+  if (Object.keys(errors).length > 0) {
+    throw ApiError.validation("Invalid version.", errors);
+  }
+
+  const now = new Date().toISOString();
+  const position = nextPosition(db, songId);
+  const sheetText = (body.sheetText ?? "").replace(/\r/g, "");
+
+  const run = db.transaction(() => {
+    const info = db
+      .prepare(
+        `INSERT INTO song_versions
+         (song_id, label, position, sheet_text, song_key, capo,
+          fmt_columns, fmt_body_size, fmt_line_height, fmt_margin_mm, fmt_top_extra_mm,
+          created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        songId,
+        body.label.trim(),
+        position,
+        sheetText,
+        body.songKey || null,
+        body.capo ?? null,
+        formatting.columns,
+        formatting.bodySize,
+        formatting.lineHeight,
+        formatting.marginMm,
+        formatting.topExtraMm,
+        now,
+        now
+      );
+    const versionId = Number(info.lastInsertRowid);
+    if (Array.isArray(body.chordIds) && body.chordIds.length > 0) {
+      replaceChordSelection(db, versionId, body.chordIds);
+    }
+    return versionId;
+  });
+
+  const versionId = run();
+  const row = db.prepare("SELECT * FROM song_versions WHERE id = ?").get(versionId) as VersionRow;
+  return rowToVersion(db, row);
+}
+
 export function versionsRouter(db: Database.Database): Router {
   const router = Router();
 
   router.post("/songs/:songId/versions", (req, res) => {
     const song = db.prepare("SELECT id FROM songs WHERE id = ?").get(req.params.songId);
     if (!song) throw ApiError.notFound("Song not found.");
-
-    const body = req.body ?? {};
-    const labelErrors = validateVersionLabel(body.label ?? "");
-    const capoErrors = validateCapo(body.capo ?? null);
-    const formatting = { ...DEFAULT_FORMATTING, ...(body.formatting ?? {}) };
-    const formattingErrors = validateFormatting(formatting);
-    const errors = { ...labelErrors, ...capoErrors, ...formattingErrors };
-    if (Object.keys(errors).length > 0) {
-      throw ApiError.validation("Invalid version.", errors);
-    }
-
-    const now = new Date().toISOString();
-    const songId = Number(req.params.songId);
-    const position = nextPosition(db, songId);
-    const sheetText = (body.sheetText ?? "").replace(/\r/g, "");
-
-    const run = db.transaction(() => {
-      const info = db
-        .prepare(
-          `INSERT INTO song_versions
-           (song_id, label, position, sheet_text, song_key, capo,
-            fmt_columns, fmt_body_size, fmt_line_height, fmt_margin_mm, fmt_top_extra_mm,
-            created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .run(
-          songId,
-          body.label.trim(),
-          position,
-          sheetText,
-          body.songKey || null,
-          body.capo ?? null,
-          formatting.columns,
-          formatting.bodySize,
-          formatting.lineHeight,
-          formatting.marginMm,
-          formatting.topExtraMm,
-          now,
-          now
-        );
-      const versionId = Number(info.lastInsertRowid);
-      if (Array.isArray(body.chordIds) && body.chordIds.length > 0) {
-        replaceChordSelection(db, versionId, body.chordIds);
-      }
-      return versionId;
-    });
-
-    const versionId = run();
-    const row = db.prepare("SELECT * FROM song_versions WHERE id = ?").get(versionId) as VersionRow;
-    res.status(201).json(rowToVersion(db, row));
+    res.status(201).json(insertVersion(db, Number(req.params.songId), req.body ?? {}));
   });
 
   router.get("/versions/:id", (req, res) => {

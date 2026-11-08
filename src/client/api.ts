@@ -38,8 +38,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   // Songs
   listSongs: (q?: string) => request<SongSummary[]>(`/songs${q ? `?q=${encodeURIComponent(q)}` : ""}`),
-  createSong: (title: string, artist: string) =>
-    request<Song>("/songs", { method: "POST", body: JSON.stringify({ title, artist }) }),
+  /** With `firstVersion`, the response carries that version in `versions[0]`. */
+  createSong: (
+    title: string,
+    artist: string,
+    firstVersion?: { label?: string; songKey?: string | null; capo?: number | null }
+  ) =>
+    request<Song>("/songs", {
+      method: "POST",
+      body: JSON.stringify({ title, artist, firstVersion }),
+    }),
   getSong: (id: number) => request<Song>(`/songs/${id}`),
   updateSong: (id: number, title: string, artist: string) =>
     request<SongSummary>(`/songs/${id}`, { method: "PUT", body: JSON.stringify({ title, artist }) }),
