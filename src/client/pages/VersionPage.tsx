@@ -173,9 +173,13 @@ export function VersionPage() {
           <label htmlFor="sheet-text" className="sr-only">
             Texto da cifra
           </label>
+          {/* An empty version is one that was just created, usually straight
+              from the library with a sheet on the clipboard: land ready to
+              paste. A version with text keeps focus where the page put it. */}
           <textarea
             id="sheet-text"
             className="editor-input"
+            autoFocus={version.sheetText === ""}
             value={sheetText}
             onChange={(e) => edited(setSheetText)(e.target.value)}
             spellCheck={false}
