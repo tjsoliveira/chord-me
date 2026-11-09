@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, ApiClientError } from "../api.js";
+import { AdvancedMenu } from "../components/AdvancedMenu.js";
 import { ChordPicker } from "../components/ChordPicker.js";
 import { FormattingControls } from "../components/FormattingControls.js";
+import { ReplaceChordForm } from "../components/ReplaceChordForm.js";
 import { Sheet } from "../components/Sheet.js";
 import { useDocumentTitle } from "../useDocumentTitle.js";
 import type { Chord, FormattingSettings, Song, SongVersionWithChords } from "../../shared/types.js";
@@ -150,6 +152,9 @@ export function VersionPage() {
           <button type="button" className="secondary" onClick={() => window.print()}>
             Imprimir / PDF
           </button>
+          <AdvancedMenu>
+            <ReplaceChordForm sheetText={sheetText} onReplace={edited(setSheetText)} />
+          </AdvancedMenu>
         </div>
 
         <div className="toolbar-line">
@@ -166,6 +171,7 @@ export function VersionPage() {
             onChange={edited(setChordIds)}
           />
         </div>
+
       </div>
 
       <div className="panes">

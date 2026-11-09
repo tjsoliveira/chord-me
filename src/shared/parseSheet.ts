@@ -10,7 +10,7 @@ export type Block =
 const CHORD_NAME =
   /^[A-G][#b]?(?:maj|min|dim|aug|sus|add|[mM])?(?:[0-9()#b+\-º°]|maj|min|dim|aug|sus|add|[mM]|\/[A-G][#b]?)*$/;
 
-function isChordLine(line: string): boolean {
+export function isChordLine(line: string): boolean {
   const tokens = line.trim().split(/\s+/).filter(Boolean);
   return tokens.length > 0 && tokens.every((w) => CHORD_NAME.test(w));
 }
