@@ -1,4 +1,4 @@
-import { parseSheet } from "../../shared/parseSheet.js";
+import { parseSheet, segmentPair } from "../../shared/parseSheet.js";
 import type { Chord, FormattingSettings } from "../../shared/types.js";
 import { ChordDiagram } from "./ChordDiagram.js";
 
@@ -73,8 +73,14 @@ export function Sheet({ title, artist, songKey, capo, chords, sheetText, formatt
             case "pair":
               return (
                 <div className="sheet-blk" key={i}>
-                  <pre className="c">{b.chordLine}</pre>
-                  <pre>{b.lyricLine}</pre>
+                  <div className="sheet-pair">
+                    {segmentPair(b.chordLine, b.lyricLine).map((s, j) => (
+                      <div className="sheet-seg" key={j}>
+                        {s.chords.trim() && <pre className="c">{s.chords}</pre>}
+                        <pre>{s.lyrics}</pre>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             case "chords":

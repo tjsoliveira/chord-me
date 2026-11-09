@@ -59,3 +59,38 @@ export function parseSheet(text: string): Block[] {
 
   return blocks;
 }
+
+export interface PairSegment {
+  chords: string;
+  lyrics: string;
+}
+
+/**
+ * Cuts a chord+lyric pair into pieces that can wrap as units. A cut falls at
+ * the start of each lyric word, unless it would split a chord name; then the
+ * piece runs on to the next word. Both halves of a piece have the same length,
+ * so the pieces laid side by side reproduce the original two lines exactly.
+ */
+export function segmentPair(chordLine: string, lyricLine: string): PairSegment[] {
+  const width = Math.max(chordLine.length, lyricLine.length);
+  const chords = chordLine.padEnd(width);
+  const lyrics = lyricLine.padEnd(width);
+  const isGap = (s: string, p: number) => s[p] === " ";
+
+  const cuts = [0];
+  for (let p = 1; p < width; p++) {
+    const wordStart = !isGap(lyrics, p) && isGap(lyrics, p - 1);
+    const insideChord = !isGap(chords, p) && !isGap(chords, p - 1);
+    if (wordStart && !insideChord) cuts.push(p);
+  }
+  cuts.push(width);
+
+  const segments: PairSegment[] = [];
+  for (let k = 0; k < cuts.length - 1; k++) {
+    segments.push({
+      chords: chords.slice(cuts[k], cuts[k + 1]),
+      lyrics: lyrics.slice(cuts[k], cuts[k + 1]),
+    });
+  }
+  return segments;
+}

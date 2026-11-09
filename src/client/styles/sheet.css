@@ -132,6 +132,27 @@
   font-weight: 700;
 }
 
+/* A chord line and its lyric line used to be two pre-wrap <pre>s, each
+   wrapping on its own when the pair was wider than the column, so a chord
+   landed on a different word than the one it was written over. The pair is
+   now cut into word-sized pieces (segmentPair) that wrap as units, each piece
+   carrying its chords above its syllables. Lines that fit print exactly as
+   before. Deliberate change to printed output (Constitution Principle II). */
+.sheet-pair {
+  display: flex;
+  flex-wrap: wrap;
+  /* Pieces with no chord omit the chord row; bottom alignment keeps every
+     piece's lyric on one baseline, and a wrapped run with no chords prints
+     as a lyric line without an empty row above it. */
+  align-items: flex-end;
+}
+
+/* Never wrap inside a piece, and let its trailing spaces count toward its
+   width, so pieces side by side keep the original column positions. */
+.sheet-seg pre {
+  white-space: pre;
+}
+
 /* Section headings sat in --muted, the same grey as the caption and the meta
    line, which made the one structural landmark on the page the faintest thing
    on it. Full ink plus a hairline: the hierarchy is carried by weight and a

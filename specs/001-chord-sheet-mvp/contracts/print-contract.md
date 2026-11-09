@@ -98,6 +98,9 @@ Body size is `fmt_body_size` in points; line height is `fmt_line_height`, unitle
 - Every chord-and-lyric pair is one block carrying `break-inside: avoid` and
   `page-break-inside: avoid` (FR-015). A chord line must never be separated from the lyric
   line it sits above — that is the single most damaging print regression possible here.
+- A chord-and-lyric pair wider than its column wraps as one unit, at the lyric's word
+  boundaries (never inside a chord name). Each chord stays over the syllable it was written
+  over; a wrapped run with no chords prints as a lyric line alone.
 - Section headings carry the same protection.
 - The header block does not split.
 - Long sheets flow across pages naturally; the diagrams appear on the first page only.

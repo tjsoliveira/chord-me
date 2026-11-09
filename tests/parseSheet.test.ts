@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSheet } from "../src/shared/parseSheet.js";
+import { parseSheet, segmentPair } from "../src/shared/parseSheet.js";
 
 describe("parseSheet", () => {
   it("pairs a chord line with the lyric line directly beneath it", () => {
@@ -45,5 +45,50 @@ describe("parseSheet", () => {
   it("recognises slash chords, extensions, and degree-sign notation on a chord line", () => {
     const blocks = parseSheet("D/F# Cmaj7 Em9 Cadd9 Fº G°");
     expect(blocks).toEqual([{ kind: "chords", line: "D/F# Cmaj7 Em9 Cadd9 Fº G°" }]);
+  });
+});
+
+describe("segmentPair", () => {
+  const join = (segs: { chords: string; lyrics: string }[]) => ({
+    chords: segs.map((s) => s.chords).join(""),
+    lyrics: segs.map((s) => s.lyrics).join(""),
+  });
+
+  it("cuts at each lyric word and reproduces both lines when rejoined", () => {
+    const segs = segmentPair("D        G", "Ousado amor");
+    expect(segs).toEqual([
+      { chords: "D      ", lyrics: "Ousado " },
+      { chords: "  G ", lyrics: "amor" },
+    ]);
+    expect(join(segs)).toEqual({ chords: "D        G ", lyrics: "Ousado amor" });
+  });
+
+  it("keeps a chord over the syllable it was written over once the line wraps", () => {
+    const lyric = "I see that I never really got it right";
+    const chord = "Bm" + " ".repeat(lyric.indexOf("right") + 4 - 2) + "G";
+    const segs = segmentPair(chord, lyric);
+    expect(segs[0]).toEqual({ chords: "Bm", lyrics: "I " });
+    expect(segs.at(-1)).toEqual({ chords: "    G", lyrics: "right" });
+  });
+
+  it("never cuts through a chord name that spans the start of a word", () => {
+    expect(segmentPair("   F#m", "got it right")).toEqual([
+      { chords: "   F#m ", lyrics: "got it " },
+      { chords: "     ", lyrics: "right" },
+    ]);
+  });
+
+  it("keeps chords past the end of the lyric in the last piece", () => {
+    expect(segmentPair("C     G", "la la")).toEqual([
+      { chords: "C  ", lyrics: "la " },
+      { chords: "   G", lyrics: "la  " },
+    ]);
+  });
+
+  it("keeps a lyric's leading spaces as a piece of their own", () => {
+    expect(segmentPair("   C", "   hello")).toEqual([
+      { chords: "   ", lyrics: "   " },
+      { chords: "C    ", lyrics: "hello" },
+    ]);
   });
 });
